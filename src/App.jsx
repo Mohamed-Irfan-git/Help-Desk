@@ -25,7 +25,7 @@ function App() {
       
       <Route path='/' element={<Login />} />
       <Route path='/register' element={<Register />} />
-      <Route path='/reset-pasword' element={<Resetpasword />} />
+      <Route path='/reset-password' element={<Resetpasword />} />
       <Route path='/all-questions' element={<AllQuestions />} />
       <Route path='/single-question' element={<SingleQuestion />} />
       <Route path='/ask-question' element={<AskQuestion />} />
