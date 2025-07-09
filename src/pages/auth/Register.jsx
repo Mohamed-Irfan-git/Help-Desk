@@ -10,38 +10,44 @@ function Register() {
   const [year, setYear] = useState("");
 
   const [showPassword, setShowPassword] = useState(false); 
-
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
-
-  // validation modals
   const [isDuplicateEmailOpen, setIsDuplicateEmailOpen] = useState(false);
   const [isPasswordCorrect, setIsPasswordCorrect] = useState(false);
+  const [error, setError] = useState(null); // New error state
 
-  function handleSubmit(e) {
+  const navigate = useNavigate();
+
+  async function handleSubmit(e) {
     e.preventDefault();
 
-    const usersArray = JSON.parse(localStorage.getItem('usersArray')) || [];
-
-    const emailExists = usersArray.some(user => user.email === email);
-    if (emailExists) {
-      setIsDuplicateEmailOpen(true);
-      return;
-    }
-
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
-
-    if (!strongPasswordRegex.test(password)) {
-      setIsPasswordCorrect(true);
-      return;
-    }
-
     const user = { name, email, password, department, year };
-    usersArray.push(user);
-    localStorage.setItem('usersArray', JSON.stringify(usersArray));
 
-    clearInputs();
-    setIsOpen(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(user)
+      });
+
+      const data = await res.json();
+
+      if (res.status === 201) {
+        clearInputs();
+        setIsOpen(true);
+      } else if (res.status === 409) {
+        setIsDuplicateEmailOpen(true);
+      } else if (res.status === 400 && data.message === "Weak password") {
+        setIsPasswordCorrect(true);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError("Failed to register. Please try again later.");
+    }
   }
 
   function clearInputs() {
@@ -62,7 +68,6 @@ function Register() {
     <>
       <div className="min-h-screen bg-gradient-to-tr from-pink-100 to-rose-200 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-6xl bg-white text-black rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden">
-
           <div className="flex-1 p-6 sm:p-10 lg:p-12 space-y-6">
             <h2 className="text-3xl font-bold text-rose-600">Create an Account</h2>
             <p className="text-sm text-gray-600">
@@ -157,14 +162,10 @@ function Register() {
             </form>
           </div>
 
-          <div className="flex-1 bg-cover bg-center hidden md:block" ></div>
-
+          <div className="flex-1 bg-cover bg-center hidden md:block"></div>
         </div>
       </div>
 
-
-
-      {/*<=========models========> */}
       {/* Success Modal */}
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="fixed z-50 inset-0 flex items-center justify-center bg-black/30">
         <Dialog.Panel className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl space-y-4 text-center">
@@ -180,86 +181,23 @@ function Register() {
       </Dialog>
 
       {/* Duplicate Email Modal */}
-      <Dialog
-        open={isDuplicateEmailOpen}
-        onClose={() => setIsDuplicateEmailOpen(false)}
-        className="fixed z-50 inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      >
-        <Dialog.Panel className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl text-center animate-fade-in space-y-5">
-
-          {/* Warning Icon */}
-          <div className="flex justify-center">
-            <div className="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
-              <svg
-                className="w-7 h-7"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v2m0 4h.01m-.01-8a4 4 0 110 8 4 4 0 010-8zm0-3a9 9 0 100 18 9 9 0 000-18z"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Title */}
-          <Dialog.Title className="text-2xl font-bold text-red-600">
-            Email Already Exists
-          </Dialog.Title>
-
-          {/* Message */}
-          <p className="text-gray-700">
-            This email is already registered. <br />
-            Please use a different one.
-          </p>
-
-          {/* Button */}
+      <Dialog open={isDuplicateEmailOpen} onClose={() => setIsDuplicateEmailOpen(false)} className="fixed z-50 inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <Dialog.Panel className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl text-center space-y-5">
+          <Dialog.Title className="text-2xl font-bold text-red-600">Email Already Exists</Dialog.Title>
+          <p className="text-gray-700">This email is already registered. <br />Please use a different one.</p>
           <button
             onClick={() => setIsDuplicateEmailOpen(false)}
-            className="mt-4 px-6 py-2 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all duration-300"
+            className="mt-4 px-6 py-2 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-semibold transition"
           >
             Try Again
           </button>
         </Dialog.Panel>
       </Dialog>
 
-
       {/* Weak Password Modal */}
-      <Dialog
-        open={isPasswordCorrect}
-        onClose={() => setIsPasswordCorrect(false)}
-        className="fixed z-50 inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      >
-        <Dialog.Panel className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl text-center animate-fade-in space-y-5">
-          {/* Warning Icon */}
-          <div className="flex justify-center">
-            <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
-              <svg
-                className="w-7 h-7"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v2m0 4h.01m-.01-8a4 4 0 110 8 4 4 0 010-8zm0-3a9 9 0 100 18 9 9 0 000-18z"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Title */}
-          <Dialog.Title className="text-2xl font-bold text-rose-600">
-            Weak Password
-          </Dialog.Title>
-
-          {/* Message */}
+      <Dialog open={isPasswordCorrect} onClose={() => setIsPasswordCorrect(false)} className="fixed z-50 inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <Dialog.Panel className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl text-center space-y-5">
+          <Dialog.Title className="text-2xl font-bold text-rose-600">Weak Password</Dialog.Title>
           <div className="text-gray-700 leading-relaxed">
             Your password must contain at least:
             <ul className="text-left mt-3 space-y-2 px-4">
@@ -270,17 +208,28 @@ function Register() {
               <li>✅ Minimum <strong>6 characters</strong></li>
             </ul>
           </div>
-
-          {/* Close Button */}
           <button
             onClick={() => setIsPasswordCorrect(false)}
-            className="mt-4 px-6 py-2 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-all duration-300"
+            className="mt-4 px-6 py-2 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-semibold transition"
           >
             Got it
           </button>
         </Dialog.Panel>
       </Dialog>
 
+      {/* Error Modal */}
+      <Dialog open={!!error} onClose={() => setError(null)} className="fixed z-50 inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <Dialog.Panel className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl text-center space-y-5">
+          <Dialog.Title className="text-2xl font-bold text-red-600">Error</Dialog.Title>
+          <p className="text-gray-700">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="mt-4 px-6 py-2 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-semibold transition"
+          >
+            Close
+          </button>
+        </Dialog.Panel>
+      </Dialog>
     </>
   );
 }

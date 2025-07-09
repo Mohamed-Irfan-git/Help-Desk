@@ -1,67 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 
 function UserDashboard() {
+  const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [matchedQuestion, setMatchedQuestion] = useState(null);
   const [editedTitle, setEditedTitle] = useState('');
   const [selectedQuestion, setSelectedQuestion] = useState(null);
 
-  const user = {
-    name: 'Senior_A',
-    email: 'senior.a@example.com',
-    badges: ['Helpful Hero', 'First Responder'],
-    questionsAsked: 4,
-    answersGiven: 18,
-    myQuestions: [
-      {
-        title: 'How to apply for lab sessions?',
-        status: 'Answered',
-        date: 'July 5, 2025',
-        answers: [
-          'You can apply through the academic portal under the Labs section.',
-          'Ask your lab instructor for the registration deadline.'
-        ],
-      },
-      {
-        title: 'Where can I find notes?',
-        status: 'Answered',
-        date: 'July 3, 2025',
-        answers: ['Notes are available on the course website under the "Resources" tab.'],
-      },
-      {
-        title: 'Help with assignment 2',
-        status: 'Pending',
-        date: 'July 2, 2025',
-        answers: [],
-      },
-      {
-        title: 'Doubt in lecture topic',
-        status: 'Answered',
-        date: 'July 1, 2025',
-        answers: ['Check the supplementary video in the LMS for a better explanation.'],
-      },
-      {
-        title: 'Is attendance mandatory?',
-        status: 'Answered',
-        date: 'June 28, 2025',
-        answers: ['Yes, 75% attendance is required to sit for the final exam.'],
-      },
-      {
-        title: 'Internship letter?',
-        status: 'Pending',
-        date: 'June 25, 2025',
-        answers: [],
-      },
-    ]
-  };
+  // On component mount, load user from sessionStorage
+  useEffect(() => {
+    const storedUserString = sessionStorage.getItem('currentUser');
+    if (storedUserString) {
+      try {
+        const storedUser = JSON.parse(storedUserString);
+        setUser(storedUser);
+      } catch (e) {
+        console.error('Failed to parse user from sessionStorage', e);
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+    }
+  }, []);
 
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
 
-    if (term.trim().length > 0) {
+    if (term.trim().length > 0 && user?.myQuestions) {
       const match = user.myQuestions.find((q) =>
         q.title.toLowerCase().includes(term.toLowerCase())
       );
@@ -73,21 +41,48 @@ function UserDashboard() {
   };
 
   const handleSave = () => {
-    alert(`Title updated to: ${editedTitle}`);
+    if (!matchedQuestion) return;
+
+    // Update the matched question's title locally
+    const updatedQuestions = user.myQuestions.map((q) =>
+      q.title === matchedQuestion.title ? { ...q, title: editedTitle } : q
+    );
+
+    const updatedUser = {
+      ...user,
+      myQuestions: updatedQuestions,
+    };
+
+    setUser(updatedUser);
     setMatchedQuestion(null);
     setSearchTerm('');
+
+    // Update sessionStorage with updated user data
+    sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+    alert(`Title updated to: ${editedTitle}`);
   };
 
   const handleCardClick = (question) => {
     setSelectedQuestion(question);
   };
 
+  if (!user) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center text-gray-600">
+          <p>No user data found. Please log in.</p>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
       <div className="min-h-screen bg-gray-100 pt-24 px-4 pb-10">
         <div className="max-w-6xl mx-auto space-y-10">
-
           {/* Profile */}
           <div className="bg-white rounded-xl p-6 shadow-md space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -99,22 +94,26 @@ function UserDashboard() {
                 <p className="text-sm text-gray-600">📧 {user.email}</p>
                 <p className="mt-2 text-sm text-gray-700">
                   🏅 Badges:{' '}
-                  {user.badges.map((badge, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs mr-2"
-                    >
-                      {badge}
-                    </span>
-                  ))}
+                  {Array.isArray(user.badges) && user.badges.length > 0 ? (
+                    user.badges.map((badge, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs mr-2"
+                      >
+                        {badge}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-400 text-xs italic">No badges earned yet</span>
+                  )}
                 </p>
               </div>
             </div>
 
             <div className="pt-2">
               <h3 className="font-semibold text-gray-800 mb-1">📊 Stats</h3>
-              <p className="text-sm">Questions Asked: {user.questionsAsked}</p>
-              <p className="text-sm">Answers Given: {user.answersGiven}</p>
+              <p className="text-sm">Questions Asked: {user.questionsAsked || 0}</p>
+              <p className="text-sm">Answers Given: {user.answersGiven || 0}</p>
             </div>
           </div>
 
@@ -139,30 +138,32 @@ function UserDashboard() {
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {user.myQuestions.map((q, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => handleCardClick(q)}
-                  className={`cursor-pointer p-4 rounded-xl border-l-4 shadow-sm hover:scale-[1.02] transition ${
-                    q.status === 'Answered' ? 'bg-green-50 border-green-500' : 'bg-yellow-50 border-yellow-500'
-                  }`}
-                >
-                  <p className="font-medium text-gray-800 truncate" title={q.title}>
-                    ❓ {q.title}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Status:{' '}
-                    <span
-                      className={`font-semibold ${
-                        q.status === 'Answered' ? 'text-green-600' : 'text-yellow-700'
+              {user.myQuestions && user.myQuestions.length > 0 ? (
+                user.myQuestions.map((q, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handleCardClick(q)}
+                    className={`cursor-pointer p-4 rounded-xl border-l-4 shadow-sm hover:scale-[1.02] transition ${q.status === 'Answered' ? 'bg-green-50 border-green-500' : 'bg-yellow-50 border-yellow-500'
                       }`}
-                    >
-                      {q.status}
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">📅 {q.date}</p>
-                </div>
-              ))}
+                  >
+                    <p className="font-medium text-gray-800 truncate" title={q.title}>
+                      ❓ {q.title}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Status:{' '}
+                      <span
+                        className={`font-semibold ${q.status === 'Answered' ? 'text-green-600' : 'text-yellow-700'
+                          }`}
+                      >
+                        {q.status}
+                      </span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">📅 {q.date}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500">You have not asked any questions yet.</p>
+              )}
             </div>
           </div>
         </div>

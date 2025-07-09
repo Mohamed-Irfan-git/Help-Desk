@@ -9,28 +9,42 @@ function Login() {
 
   const [userNotFound, setUserNotFound] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
-  const [loggedInUser, setLoggedInUser] = useState(null); 
+  const [loggedInUser, setLoggedInUser] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    setLoading(true);
+    setUserNotFound(false);
+    setError(null);
 
-    const usersArray = JSON.parse(localStorage.getItem('usersArray')) || [];
-    const LoggeduserArray = JSON.parse(localStorage.getItem('LoggedUserArray')) || [];
+    try {
+      const response = await fetch("http://localhost:5000/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const currentUser = usersArray.find(
-      (user) => user.email === email && user.password === password
-    );
+      const data = await response.json();
 
-    if (currentUser) {
-      LoggeduserArray.push(currentUser);
-      localStorage.setItem('LoggedUserArray', JSON.stringify(LoggeduserArray));
-      setLoggedInUser(currentUser);
-      clearInputs();
-      setLoginSuccess(true);
-    } else {
-      setUserNotFound(true);
+      if (response.ok) {
+        setLoggedInUser(data.user || null);
+        sessionStorage.setItem("currentUser", JSON.stringify(data));
+        clearInputs();
+        setLoginSuccess(true);
+      } else if (response.status === 401 || response.status === 404) {
+        setUserNotFound(true);
+      } else {
+        setError("Login failed. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Network error. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -43,7 +57,6 @@ function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-tr from-rose-100 to-pink-200">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl flex flex-col md:flex-row items-center gap-10 p-6 md:p-12 lg:p-16">
-
         {/* Form */}
         <div className="w-full md:w-1/2 space-y-8">
           <div>
@@ -61,6 +74,7 @@ function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
 
             <div className="relative">
@@ -71,12 +85,14 @@ function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-rose-600"
                 tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
@@ -101,8 +117,12 @@ function Login() {
               <Link to="/reset-password" className="hover:underline text-rose-500">Forgot password?</Link>
             </div>
 
-            <button type='submit' className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl text-lg font-semibold transition">
-              Login
+            <button
+              type='submit'
+              className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl text-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Login"}
             </button>
 
             <p className="text-center text-sm pt-3 text-gray-600">
@@ -125,20 +145,8 @@ function Login() {
       </div>
 
       {/* User Not Found Modal */}
-      <Dialog
-        open={userNotFound}
-        onClose={() => setUserNotFound(false)}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      >
+      <Dialog open={userNotFound} onClose={() => setUserNotFound(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
         <Dialog.Panel className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-5 text-center">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shadow-md">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-.01-8a4 4 0 110 8 4 4 0 010-8z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3a9 9 0 100 18 9 9 0 000-18z" />
-              </svg>
-            </div>
-          </div>
           <Dialog.Title className="text-2xl font-bold text-rose-600">User Not Found</Dialog.Title>
           <p className="text-gray-700">We couldn’t find an account with that email and password.</p>
           <button
@@ -151,19 +159,8 @@ function Login() {
       </Dialog>
 
       {/* Login Success Modal */}
-      <Dialog
-        open={loginSuccess}
-        onClose={() => setLoginSuccess(false)}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      >
+      <Dialog open={loginSuccess} onClose={() => setLoginSuccess(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
         <Dialog.Panel className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-5 text-center">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center shadow-md">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
           <Dialog.Title className="text-2xl font-bold text-emerald-600">Login Successful</Dialog.Title>
           <p className="text-gray-700">
             Welcome back{loggedInUser?.name ? `, ${loggedInUser.name}` : ""}!
@@ -176,6 +173,20 @@ function Login() {
             className="mt-4 px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-semibold shadow-lg transition-all"
           >
             Continue
+          </button>
+        </Dialog.Panel>
+      </Dialog>
+
+      {/* Error Modal */}
+      <Dialog open={!!error} onClose={() => setError(null)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <Dialog.Panel className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-5 text-center">
+          <Dialog.Title className="text-2xl font-bold text-red-600">Error</Dialog.Title>
+          <p className="text-gray-700">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="mt-4 px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold shadow-lg transition-all"
+          >
+            Close
           </button>
         </Dialog.Panel>
       </Dialog>

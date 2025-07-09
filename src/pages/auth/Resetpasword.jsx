@@ -12,31 +12,44 @@ function ResetPassword() {
 
   const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-
-    const usersArray = JSON.parse(localStorage.getItem('usersArray')) || [];
-    const userIndex = usersArray.findIndex(user => user.email === email);
-
-    if (userIndex === -1) {
-      setIsUserNotFoundOpen(true);
-      setError("");
-      return;
-    }
 
     if (newPassword.trim().length < 6) {
       setError("Password must be at least 6 characters long.");
       return;
     }
 
-    // Update password
-    usersArray[userIndex].password = newPassword;
-    localStorage.setItem('usersArray', JSON.stringify(usersArray));
-    setError("");
-    setIsSuccessOpen(true);
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+    if (!strongPasswordRegex.test(newPassword)) {
+      setError("Password must include uppercase, lowercase, number, and special character.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/users/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, newPassword })
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setError("");
+        setIsSuccessOpen(true);
+      } else if (response.status === 404) {
+        setIsUserNotFoundOpen(true);
+        setError("");
+      } else {
+        setError(data.message || "Something went wrong. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Network error. Please try again later.");
+    }
   }
 
-  // Redirect after success modal
   useEffect(() => {
     if (isSuccessOpen) {
       const timer = setTimeout(() => {
@@ -52,7 +65,7 @@ function ResetPassword() {
       <div className="w-full max-w-md bg-white p-8 sm:p-10 rounded-2xl shadow-2xl text-center">
         <h2 className="text-3xl font-bold text-rose-600 mb-4">🔒 Reset Password</h2>
         <p className="text-sm text-gray-600 mb-6">
-          Enter your email and your new password to reset access.
+          Enter your email and new password to reset access.
         </p>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -86,7 +99,7 @@ function ResetPassword() {
 
         <p className="mt-4 text-sm text-gray-600">
           Remember your password?{" "}
-          <Link to="/login" className="text-rose-500 font-medium hover:underline">
+          <Link to="/" className="text-rose-500 font-medium hover:underline">
             Back to Login
           </Link>
         </p>
@@ -98,16 +111,10 @@ function ResetPassword() {
         onClose={() => setIsSuccessOpen(false)}
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       >
-        <Dialog.Panel className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl space-y-6 text-center animate-fade-in">
+        <Dialog.Panel className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl space-y-6 text-center">
           <div className="flex justify-center">
             <div className="w-20 h-20 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center shadow-md">
-              <svg
-                className="w-10 h-10"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -128,16 +135,10 @@ function ResetPassword() {
         onClose={() => setIsUserNotFoundOpen(false)}
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       >
-        <Dialog.Panel className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl space-y-6 text-center animate-fade-in">
+        <Dialog.Panel className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl space-y-6 text-center">
           <div className="flex justify-center">
             <div className="w-20 h-20 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shadow-md">
-              <svg
-                className="w-10 h-10"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                 <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 <circle cx="12" cy="16" r="1" fill="currentColor" />
