@@ -3,61 +3,85 @@ import { Dialog } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
 
 function Register() {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [department, setDepartment] = useState("");
+  const [role, setRole] = useState("");
   const [year, setYear] = useState("");
+  const [gender, setGender] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false); 
-  const [isOpen, setIsOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [isOpen, setIsOpen] = useState(false); //Success Modal
   const [isDuplicateEmailOpen, setIsDuplicateEmailOpen] = useState(false);
   const [isPasswordCorrect, setIsPasswordCorrect] = useState(false);
-  const [error, setError] = useState(null); // New error state
+
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const user = { name, email, password, department, year };
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+
+    if (!passwordRegex.test(password)) {
+      setIsPasswordCorrect(true); 
+      return;
+    }
+
+    const user = {
+      firstName,
+      lastName,
+      email,
+      role: [role],
+      password,
+      gender,
+      departmentId: parseInt(department) || 0,
+      batchNo: parseInt(year) || 0,
+    };
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/register", {
+      const response = await fetch("http://localhost:8080/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(user)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (res.status === 201) {
+      if (response.status === 201 || response.ok) {
         clearInputs();
         setIsOpen(true);
-      } else if (res.status === 409) {
+      } else if (response.status === 409) {
         setIsDuplicateEmailOpen(true);
-      } else if (res.status === 400 && data.message === "Weak password") {
+      } else if (response.status === 400 && data.message?.toLowerCase().includes("weak")) {
         setIsPasswordCorrect(true);
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(data.message || "Something went wrong. Please try again.");
       }
-
-    } catch (error) {
-      console.error("Registration error:", error);
-      setError("Failed to register. Please try again later.");
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Network or server error. Please try again later.");
     }
   }
 
+
+
   function clearInputs() {
-    setName("");
+    setFirstName("");
+    setLastName("");
     setEmail("");
     setPassword("");
     setDepartment("");
     setYear("");
+    setGender("");
+    setRole("");
     setShowPassword(false);
   }
+
 
   function handleGoToLogin() {
     setIsOpen(false);
@@ -77,42 +101,74 @@ function Register() {
             <form className="space-y-5" onSubmit={handleSubmit}>
               <input
                 type="text"
-                placeholder="Full Name"
-                className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-300"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder="First Name"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm transition-all placeholder-gray-400"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Last Name"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm transition-all placeholder-gray-400"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 required
               />
 
               <select
-                className="w-full px-4 py-3 rounded-xl bg-gray-100 text-gray-700 border border-gray-300"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm transition-all placeholder-gray-400"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
                 required
               >
-                <option value="" disabled>Choose Department</option>
-                <option value="ICT">ICT</option>
-                <option value="ET">ET</option>
-                <option value="BST">BST</option>
+                <option value="" disabled>Choose Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
               </select>
 
               <select
-                className="w-full px-4 py-3 rounded-xl bg-gray-100 text-gray-700 border border-gray-300"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm transition-all placeholder-gray-400"
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
                 required
               >
                 <option value="" disabled>Choose Year</option>
-                <option value="First Year">First Year</option>
-                <option value="Second Year">Second Year</option>
-                <option value="Third Year">Third Year</option>
-                <option value="Fourth Year">Fourth Year</option>
+                <option value="9">9 Batch</option>
+                <option value="8">8 Batch</option>
+                <option value="7">7 Batch</option>
+                <option value="6">6 Batch</option>
+                <option value="5">5 Batch</option>
               </select>
+
+              <select
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm transition-all placeholder-gray-400"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                required
+              >
+                <option value="" disabled>Choose Department</option>
+                <option value="1">ICT</option>
+                <option value="2">ET</option>
+                <option value="3">BST</option>
+              </select>
+
+              <select
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm transition-all placeholder-gray-400"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+              >
+                <option value="" disabled>Choose Role</option>
+                <option value="student">Student</option>
+                <option value="admin" disabled>Admin</option>
+              </select>
+
 
               <input
                 type="email"
                 placeholder="Email Address"
-                className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-300"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm transition-all placeholder-gray-400"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -122,7 +178,7 @@ function Register() {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
-                  className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-300 pr-12"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm transition-all placeholder-gray-400"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

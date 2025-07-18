@@ -5,6 +5,7 @@ import { Dialog } from '@headlessui/react';
 function ResetPassword() {
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  
   const [error, setError] = useState("");
 
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);

@@ -17,13 +17,14 @@ import LeaderBoard from './pages/LeaderBoard';
 import AdminDashBord from './pages/AdminDashBord';
 import Home from './pages/Home';
 import Error from './pages/Error';
+import Test from './pages/test';
 
 
 function App() {
   return (
     <Routes>
       
-      <Route path='/' element={<Login />} />
+      <Route path='/login' element={<Login />} />
       <Route path='/register' element={<Register />} />
       <Route path='/reset-password' element={<Resetpasword />} />
       <Route path='/all-questions' element={<AllQuestions />} />
@@ -33,8 +34,10 @@ function App() {
       <Route path='/analytics' element={<Analytics />} />
       <Route path='/leader-board' element={<LeaderBoard />} />
       <Route path='/admin-dashBord' element={<AdminDashBord />} />
-      <Route path='/home' element={<Home />} />
+      <Route path='/' element={<Home />} />
       <Route path='/*' element={<Error />} />
+      <Route path='/test' element={<Test />} />
+
 
 
     </Routes>

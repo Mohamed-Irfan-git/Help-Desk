@@ -11,18 +11,17 @@ function Login() {
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  
 
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
     setUserNotFound(false);
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:5000/api/users/login", {
+     const response = await fetch("http://localhost:8080/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -43,8 +42,6 @@ function Login() {
     } catch (err) {
       console.error("Login error:", err);
       setError("Network error. Please try again later.");
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -74,7 +71,6 @@ function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
             />
 
             <div className="relative">
@@ -85,7 +81,6 @@ function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={loading}
               />
               <button
                 type="button"
@@ -120,9 +115,8 @@ function Login() {
             <button
               type='submit'
               className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl text-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
             >
-              {loading ? "Logging in..." : "Login"}
+              Login
             </button>
 
             <p className="text-center text-sm pt-3 text-gray-600">
@@ -168,7 +162,7 @@ function Login() {
           <button
             onClick={() => {
               setLoginSuccess(false);
-              navigate("/home");
+              navigate("/");
             }}
             className="mt-4 px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-semibold shadow-lg transition-all"
           >
