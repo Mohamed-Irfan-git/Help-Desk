@@ -9,9 +9,11 @@ function AllQuestionsPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/questions")
+    fetch("http://localhost:8080/api/questions", {
+      method: "GET",
+      credentials: "include", // 👈 include cookies/session tokens
+    })
       .then((response) => {
-        
         if (!response.ok) {
           throw new Error("Network response was not ok " + response.status);
         }
@@ -25,7 +27,7 @@ function AllQuestionsPage() {
         setError(error.message);
         setLoading(false);
       });
-  }, []); // empty dependency array = run once on mount
+  }, []);
 
   if (loading) {
     return (
@@ -67,8 +69,8 @@ function AllQuestionsPage() {
 
       {/* Questions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6 pb-12">
-        {questions.map((question) => (
-          <QuestionCard key={question.id} question={question} />
+        {questions.map((question,index) => (
+          <QuestionCard key={index} question={question} />
         ))}
       </div>
     </div>

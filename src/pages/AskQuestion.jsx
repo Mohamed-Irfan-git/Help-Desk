@@ -17,17 +17,68 @@ function AskQuestion() {
     );
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Get current user from sessionStorage
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+
+    if (!currentUser) {
+      alert('Please log in to submit a question.');
+      return;
+    }
+
+    // Map category name to categoryId (use first selected category)
+    const categoryMap = {
+      Timetable: 1,
+      Subjects: 2,
+      Exams: 3,
+      Labs: 4,
+    };
+    const categoryId = categories.length > 0 ? categoryMap[categories[0]] : 0;
+
+    if (categoryId === 0) {
+      alert('Please select at least one category.');
+      return;
+    }
+
     const newQuestion = {
+      questionId: 0,
       title,
       description,
-      categories,
-      isAnonymous,
-      postedAt: new Date().toISOString(),
+      createdDate: new Date().toISOString(),
+      anonymous: isAnonymous,
+      vote: 0,
+      userId: 4,
+      categoryId,
+      userName: "testuser",
+      answers: [],
     };
-    console.log('Question Submitted:', newQuestion);
-    // API call or state update goes here
+
+    try {
+      const response = await fetch('http://localhost:8080/api/questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: "include",
+        body: JSON.stringify(newQuestion),
+      });
+
+      if (response.ok) {
+        alert('Question submitted successfully!');
+        // Reset form
+        setTitle('');
+        setDescription('');
+        setCategories([]);
+        setIsAnonymous(false);
+      } else {
+        alert('Failed to submit question');
+      }
+    } catch (error) {
+      console.error('Error submitting question:', error);
+      alert('Something went wrong!');
+    }
   };
 
   return (
@@ -111,7 +162,7 @@ function AskQuestion() {
               type="submit"
               className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white px-6 py-2 rounded-full text-sm font-semibold transition-shadow shadow-md hover:shadow-lg"
             >
-               Submit Question 🚀
+              Submit Question 🚀
             </button>
           </div>
         </form>
