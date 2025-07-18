@@ -60,11 +60,10 @@ function QuestionCard({ question }) {
         <p className="flex items-center gap-1">⏱ {formatPostedAgo(question.createdDate)}</p>
         <p>
           <span
-            className={`inline-block px-3 py-1 text-xs rounded-full font-semibold shadow-sm ${
-              status === 'Answered'
+            className={`inline-block px-3 py-1 text-xs rounded-full font-semibold shadow-sm ${status === 'Answered'
                 ? 'bg-green-100 text-green-700'
                 : 'bg-yellow-100 text-yellow-700'
-            }`}
+              }`}
           >
             {status === 'Answered' ? '✅ Answered' : '❓ Unanswered'}
           </span>
@@ -73,7 +72,7 @@ function QuestionCard({ question }) {
 
       {/* View Button */}
       <div className="mt-6 text-right">
-        <Link to={`/questions/${question.questionId}`}>
+        <Link to={`/single-question/${question.questionId}`}>
           <button className="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-md transition duration-300 cursor-pointer">
             View Question
           </button>

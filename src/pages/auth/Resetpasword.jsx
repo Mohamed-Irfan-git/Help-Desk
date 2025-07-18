@@ -100,7 +100,7 @@ function ResetPassword() {
 
         <p className="mt-4 text-sm text-gray-600">
           Remember your password?{" "}
-          <Link to="/" className="text-rose-500 font-medium hover:underline">
+          <Link to="/login" className="text-rose-500 font-medium hover:underline">
             Back to Login
           </Link>
         </p>

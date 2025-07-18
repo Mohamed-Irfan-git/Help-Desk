@@ -17,7 +17,6 @@ import LeaderBoard from './pages/LeaderBoard';
 import AdminDashBord from './pages/AdminDashBord';
 import Home from './pages/Home';
 import Error from './pages/Error';
-import Test from './pages/test';
 
 
 function App() {
@@ -28,7 +27,7 @@ function App() {
       <Route path='/register' element={<Register />} />
       <Route path='/reset-password' element={<Resetpasword />} />
       <Route path='/all-questions' element={<AllQuestions />} />
-      <Route path='/single-question' element={<SingleQuestion />} />
+      <Route path="/single-question/:id" element={<SingleQuestion />} />
       <Route path='/ask-question' element={<AskQuestion />} />
       <Route path='/user-dashboard' element={<UserDashboard />} />
       <Route path='/analytics' element={<Analytics />} />
@@ -36,9 +35,6 @@ function App() {
       <Route path='/admin-dashBord' element={<AdminDashBord />} />
       <Route path='/' element={<Home />} />
       <Route path='/*' element={<Error />} />
-      <Route path='/test' element={<Test />} />
-
-
 
     </Routes>
   )

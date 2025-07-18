@@ -11,7 +11,7 @@ function AllQuestionsPage() {
   useEffect(() => {
     fetch("http://localhost:8080/api/questions", {
       method: "GET",
-      credentials: "include", // 👈 include cookies/session tokens
+      credentials: "include", 
     })
       .then((response) => {
         if (!response.ok) {

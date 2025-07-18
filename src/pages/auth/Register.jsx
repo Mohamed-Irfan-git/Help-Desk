@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
+import imageSign from "../../assets/siginImage.jpg";
 
 function Register() {
   const [firstName, setFirstName] = useState("");
@@ -28,7 +29,7 @@ function Register() {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
 
     if (!passwordRegex.test(password)) {
-      setIsPasswordCorrect(true); 
+      setIsPasswordCorrect(true);
       return;
     }
 
@@ -86,7 +87,7 @@ function Register() {
 
   function handleGoToLogin() {
     setIsOpen(false);
-    navigate("/");
+    navigate("/login");
   }
 
   return (
@@ -219,7 +220,9 @@ function Register() {
             </form>
           </div>
 
-          <div className="flex-1 bg-cover bg-center hidden md:block"></div>
+          <div className="flex-1 hidden md:flex justify-center items-center bg-cover bg-center">
+            <img src={imageSign} alt="..." className="max-w-full h-auto" />
+          </div>
         </div>
       </div>
 

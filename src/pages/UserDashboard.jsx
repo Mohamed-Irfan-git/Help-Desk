@@ -1,70 +1,140 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { Link } from 'react-router-dom';
+import { Dialog, Transition } from '@headlessui/react';
 import Header from '../components/Header';
 
 function UserDashboard() {
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [matchedQuestion, setMatchedQuestion] = useState(null);
+  const [editQuestion, setEditQuestion] = useState(null);
   const [editedTitle, setEditedTitle] = useState('');
+  const [editedDescription, setEditedDescription] = useState('');
   const [selectedQuestion, setSelectedQuestion] = useState(null);
 
+  // eslint-disable-next-line no-unused-vars
+  const [questions, setQuestions] = useState([]);
+    // eslint-disable-next-line no-unused-vars
+  const [loading, setLoading] = useState(true);
+    // eslint-disable-next-line no-unused-vars
+  const [error, setError] = useState(null);
+
+  // Load current user from sessionStorage
   useEffect(() => {
     const storedUser = sessionStorage.getItem('currentUser');
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser({
+        userId: parsedUser.userId,
         name: parsedUser.firstName + ' ' + parsedUser.lastName,
         email: parsedUser.email,
-        badges: ['Helpful Hero', 'First Responder'], // Static for now
-        questionsAsked: 4,
-        answersGiven: 18,
-        myQuestions: [ // Placeholder questions, ideally fetched from backend
-          {
-            title: 'How to apply for lab sessions?',
-            status: 'Answered',
-            date: 'July 5, 2025',
-            answers: [
-              'You can apply through the academic portal under the Labs section.',
-              'Ask your lab instructor for the registration deadline.'
-            ],
-          },
-          {
-            title: 'Where can I find notes?',
-            status: 'Answered',
-            date: 'July 3, 2025',
-            answers: ['Notes are available on the course website under the "Resources" tab.'],
-          },
-          {
-            title: 'Help with assignment 2',
-            status: 'Pending',
-            date: 'July 2, 2025',
-            answers: [],
-          },
-        ],
+        badges: ['Helpful Hero', 'First Responder'],
+        questionsAsked: 0,
+        answersGiven: 0,
+        myQuestions: [],
       });
     }
   }, []);
 
-  const handleSearch = (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
+  // Fetch questions from backend
+  const fetchQuestions = () => {
+    setLoading(true);
+    fetch("http://localhost:8080/api/questions", {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok " + response.status);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setQuestions(data);
+        setLoading(false);
 
-    if (term.trim().length > 0 && user) {
-      const match = user.myQuestions.find((q) =>
-        q.title.toLowerCase().includes(term.toLowerCase())
-      );
-      setMatchedQuestion(match || null);
-      if (match) setEditedTitle(match.title);
-    } else {
-      setMatchedQuestion(null);
-    }
+        const storedUser = sessionStorage.getItem('currentUser');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          const myQuestions = data.filter((q) => q.userId === parsedUser.userId);
+
+          setUser((prevUser) => ({
+            ...prevUser,
+            myQuestions: myQuestions,
+            questionsAsked: myQuestions.length,
+          }));
+        }
+      })
+      .catch((error) => {
+        setError(error.message);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
+  const handleSearchInputChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const openEditModal = (question) => {
+    setEditQuestion(question);
+    setEditedTitle(question.title);
+    setEditedDescription(question.description || '');
   };
 
   const handleSave = () => {
-    alert(`Title updated to: ${editedTitle}`);
-    setMatchedQuestion(null);
-    setSearchTerm('');
+    if (!editQuestion) return;
+    const updatedQuestion = {
+      ...editQuestion,
+      title: editedTitle,
+      description: editedDescription,
+    };
+
+    fetch(`http://localhost:8080/api/questions/${editQuestion.questionId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedQuestion),
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to update: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(() => {
+        alert('Question updated successfully!');
+        setEditQuestion(null);
+        setSearchTerm('');
+        fetchQuestions();
+      })
+      .catch((err) => {
+        alert('Error updating question: ' + err.message);
+      });
+  };
+
+  const handleDelete = (question) => {
+    if (!window.confirm(`Are you sure you want to delete the question:\n"${question.title}"?`)) return;
+
+    fetch(`http://localhost:8080/api/questions/${question.questionId}`, {
+      method: 'DELETE',
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to delete: ${res.status}`);
+        }
+        alert('Question deleted successfully!');
+        setEditQuestion(null);
+        setSelectedQuestion(null);
+        setSearchTerm('');
+        fetchQuestions();
+      })
+      .catch((err) => {
+        alert('Error deleting question: ' + err.message);
+      });
   };
 
   const handleCardClick = (question) => {
@@ -118,7 +188,7 @@ function UserDashboard() {
                   placeholder="🔍 Search my questions..."
                   className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={searchTerm}
-                  onChange={handleSearch}
+                  onChange={handleSearchInputChange}
                 />
                 <Link to="/ask-question">
                   <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm transition">
@@ -128,112 +198,224 @@ function UserDashboard() {
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {user.myQuestions.map((q, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => handleCardClick(q)}
-                  className={`cursor-pointer p-4 rounded-xl border-l-4 shadow-sm hover:scale-[1.02] transition ${
-                    q.status === 'Answered' ? 'bg-green-50 border-green-500' : 'bg-yellow-50 border-yellow-500'
-                  }`}
-                >
-                  <p className="font-medium text-gray-800 truncate" title={q.title}>
-                    ❓ {q.title}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Status:{' '}
-                    <span
-                      className={`font-semibold ${
-                        q.status === 'Answered' ? 'text-green-600' : 'text-yellow-700'
-                      }`}
+            {/* Questions List or No Data */}
+            {user.myQuestions.length > 0 ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {user.myQuestions
+                  .filter((q) =>
+                    q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (q.description && q.description.toLowerCase().includes(searchTerm.toLowerCase()))
+                  )
+                  .map((q, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleCardClick(q)}
+                      className={`cursor-pointer p-4 rounded-xl border-l-4 shadow-sm hover:scale-[1.02] transition ${
+                        q.status === 'Answered' ? 'bg-green-50 border-green-500' : 'bg-yellow-50 border-yellow-500'
+                      } relative`}
                     >
-                      {q.status}
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">📅 {q.date}</p>
-                </div>
-              ))}
-            </div>
+                      <p className="font-medium text-gray-800 truncate" title={q.title}>
+                        ❓ {q.title}
+                      </p>
+                      <p className="text-sm text-gray-600 truncate" title={q.description}>
+                        📄 {q.description || 'No description'}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Status:{' '}
+                        <span className={`font-semibold ${q.status === 'Answered' ? 'text-green-600' : 'text-yellow-700'}`}>
+                          {q.status}
+                        </span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        📅 {new Date(q.createdDate).toDateString()}
+                      </p>
+
+                      {/* Edit button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditModal(q);
+                        }}
+                        className="absolute top-2 right-8 text-blue-600 hover:text-blue-800 text-lg font-bold"
+                        title="Edit Question"
+                        aria-label="Edit Question"
+                      >
+                        ✏️
+                      </button>
+
+                      {/* Delete button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(q);
+                        }}
+                        className="absolute top-2 right-2 text-red-600 hover:text-red-800 text-lg font-bold"
+                        title="Delete Question"
+                        aria-label="Delete Question"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 py-6">🚫 No questions found.</p>
+            )}
           </div>
         </div>
 
         {/* Edit Modal */}
-        {matchedQuestion && (
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 w-[90%] max-w-lg shadow-xl relative">
-              <button
-                className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl"
-                onClick={() => {
-                  setMatchedQuestion(null);
-                  setSearchTerm('');
-                }}
+        <Transition appear show={!!editQuestion} as={Fragment}>
+          <Dialog
+            as="div"
+            className="fixed inset-0 z-50 overflow-y-auto"
+            onClose={() => setEditQuestion(null)}
+          >
+            <div className="min-h-screen px-4 text-center bg-black/30 backdrop-blur-sm">
+              {/* Trick to center dialog */}
+              <span
+                className="inline-block h-screen align-middle"
+                aria-hidden="true"
               >
-                &times;
-              </button>
-              <h3 className="text-lg font-semibold mb-4">✏️ Edit Question</h3>
-              <div className="mb-3">
-                <label className="text-sm block mb-1">Title</label>
-                <input
-                  type="text"
-                  className="w-full border rounded px-3 py-2"
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                />
-              </div>
-              <p className="text-sm text-gray-700">Status: {matchedQuestion.status}</p>
-              <p className="text-xs text-gray-500 mb-4">📅 {matchedQuestion.date}</p>
-              <div className="flex justify-end gap-2">
-                <button
-                  className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
-                  onClick={() => setMatchedQuestion(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                  onClick={handleSave}
-                >
-                  Save
-                </button>
-              </div>
+                &#8203;
+              </span>
+
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-xl shadow-xl">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-semibold leading-6 text-gray-900 mb-4"
+                  >
+                    ✏️ Edit Question
+                  </Dialog.Title>
+
+                  <div className="mb-3">
+                    <label className="text-sm block mb-1">Title</label>
+                    <input
+                      type="text"
+                      className="w-full border rounded px-3 py-2"
+                      value={editedTitle}
+                      onChange={(e) => setEditedTitle(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="text-sm block mb-1">Description</label>
+                    <textarea
+                      className="w-full border rounded px-3 py-2"
+                      rows={4}
+                      value={editedDescription}
+                      onChange={(e) => setEditedDescription(e.target.value)}
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-700 mb-4">Status: {editQuestion?.status}</p>
+                  <p className="text-xs text-gray-500 mb-6">
+                    📅 {editQuestion && new Date(editQuestion.createdDate).toDateString()}
+                  </p>
+
+                  <div className="flex justify-between gap-2">
+                    <button
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                      onClick={() => handleDelete(editQuestion)}
+                    >
+                      Delete
+                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+                        onClick={() => setEditQuestion(null)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                        onClick={handleSave}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
             </div>
-          </div>
-        )}
+          </Dialog>
+        </Transition>
 
         {/* View Answer Modal */}
-        {selectedQuestion && (
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl p-6 w-[90%] max-w-lg relative">
-              <button
-                className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl"
-                onClick={() => setSelectedQuestion(null)}
+        <Transition appear show={!!selectedQuestion} as={Fragment}>
+          <Dialog
+            as="div"
+            className="fixed inset-0 z-50 overflow-y-auto"
+            onClose={() => setSelectedQuestion(null)}
+          >
+            <div className="min-h-screen px-4 text-center bg-black/30 backdrop-blur-sm">
+              <span
+                className="inline-block h-screen align-middle"
+                aria-hidden="true"
               >
-                &times;
-              </button>
-              <h3 className="text-xl font-semibold mb-4">📖 Question Details</h3>
-              <p className="mb-2"><strong>❓ Title:</strong> {selectedQuestion.title}</p>
-              <p className="mb-2"><strong>📅 Date:</strong> {selectedQuestion.date}</p>
-              <p className="mb-2">
-                <strong>📌 Status:</strong>{' '}
-                <span className={`font-semibold ${selectedQuestion.status === 'Answered' ? 'text-green-600' : 'text-yellow-700'}`}>
-                  {selectedQuestion.status}
-                </span>
-              </p>
-              {selectedQuestion.answers.length > 0 ? (
-                <div className="mt-4">
-                  <h4 className="font-semibold text-gray-800 mb-2">✅ Answers:</h4>
-                  <ul className="list-disc list-inside text-sm space-y-1 text-gray-700">
-                    {selectedQuestion.answers.map((ans, i) => (
-                      <li key={i}>{ans}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <p className="text-sm text-red-500 mt-4">No answers provided yet.</p>
-              )}
+                &#8203;
+              </span>
+
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-xl shadow-xl">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-xl font-semibold leading-6 text-gray-900 mb-4"
+                  >
+                    📖 Question Details
+                  </Dialog.Title>
+
+                  <p className="mb-2"><strong>❓ Title:</strong> {selectedQuestion?.title}</p>
+                  <p className="mb-2"><strong>📄 Description:</strong> {selectedQuestion?.description || 'No description'}</p>
+                  <p className="mb-2">
+                    <strong>📅 Date:</strong>{' '}
+                    {selectedQuestion && new Date(selectedQuestion.createdDate).toDateString()}
+                  </p>
+                  <p className="mb-2">
+                    <strong>📌 Status:</strong>{' '}
+                    <span
+                      className={`font-semibold ${
+                        selectedQuestion?.status === 'Answered' ? 'text-green-600' : 'text-yellow-700'
+                      }`}
+                    >
+                      {selectedQuestion?.status}
+                    </span>
+                  </p>
+
+                  {selectedQuestion?.answers && selectedQuestion.answers.length > 0 ? (
+                    <div className="mt-4">
+                      <h4 className="font-semibold text-gray-800 mb-2">✅ Answers:</h4>
+                      <ul className="list-disc list-inside text-sm space-y-1 text-gray-700">
+                        {selectedQuestion.answers.map((ans, i) => (
+                          <li key={i}>{ans.answer}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-red-500 mt-4">No answers provided yet.</p>
+                  )}
+                </Dialog.Panel>
+              </Transition.Child>
             </div>
-          </div>
-        )}
+          </Dialog>
+        </Transition>
       </div>
     </>
   );

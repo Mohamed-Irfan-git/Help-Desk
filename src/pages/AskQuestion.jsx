@@ -1,18 +1,25 @@
 import React, { useState } from 'react';
 import Header from '../components/Header';
+import { Dialog } from '@headlessui/react';
 
 function AskQuestion() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [categories, setCategories] = useState([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [questionSuccess, setQuestionSuccess] = useState(false);
+  const [questionError, setQuestionError] = useState('');
+  // eslint-disable-next-line no-unused-vars
+  const [currentUser, setCurrentUser] = useState(
+    JSON.parse(sessionStorage.getItem('currentUser'))
+  );
 
   const availableCategories = ['Timetable', 'Subjects', 'Exams', 'Labs'];
 
   const handleCategoryChange = (category) => {
-    setCategories(prev =>
+    setCategories((prev) =>
       prev.includes(category)
-        ? prev.filter(c => c !== category)
+        ? prev.filter((c) => c !== category)
         : [...prev, category]
     );
   };
@@ -20,15 +27,11 @@ function AskQuestion() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Get current user from sessionStorage
-    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-
     if (!currentUser) {
-      alert('Please log in to submit a question.');
+      setQuestionError('Please log in to submit a question.');
       return;
     }
 
-    // Map category name to categoryId (use first selected category)
     const categoryMap = {
       Timetable: 1,
       Subjects: 2,
@@ -38,7 +41,7 @@ function AskQuestion() {
     const categoryId = categories.length > 0 ? categoryMap[categories[0]] : 0;
 
     if (categoryId === 0) {
-      alert('Please select at least one category.');
+      setQuestionError('Please select at least one category.');
       return;
     }
 
@@ -49,9 +52,9 @@ function AskQuestion() {
       createdDate: new Date().toISOString(),
       anonymous: isAnonymous,
       vote: 0,
-      userId: 4,
+      userId: currentUser.userId,
       categoryId,
-      userName: "testuser",
+      userName: `${currentUser.firstName} ${currentUser.lastName}`,
       answers: [],
     };
 
@@ -61,37 +64,33 @@ function AskQuestion() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: "include",
+        credentials: 'include',
         body: JSON.stringify(newQuestion),
       });
 
       if (response.ok) {
-        alert('Question submitted successfully!');
-        // Reset form
+        setQuestionSuccess(true);
         setTitle('');
         setDescription('');
         setCategories([]);
         setIsAnonymous(false);
       } else {
-        alert('Failed to submit question');
+        const errText = await response.text();
+        setQuestionError(`Failed to submit question. Server says: ${errText}`);
       }
     } catch (error) {
-      console.error('Error submitting question:', error);
-      alert('Something went wrong!');
+      setQuestionError(`Something went wrong: ${error.message}`);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-100 to-blue-100 py-18 text-gray-900">
-      {/* Navbar */}
       <Header />
-
-      {/* Ask Question Form */}
-      <div className="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-2xl shadow-xl transition hover:shadow-2xl duration-300">
+      {/* Ask Form */}
+      <div className="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-2xl shadow-xl">
         <h2 className="text-2xl font-extrabold mb-6 text-blue-700">Ask a Question</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
           <div>
             <label className="block text-sm font-medium mb-2">Question Title</label>
             <input
@@ -104,7 +103,6 @@ function AskQuestion() {
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-sm font-medium mb-2">Description</label>
             <textarea
@@ -117,7 +115,6 @@ function AskQuestion() {
             />
           </div>
 
-          {/* Categories */}
           <div>
             <label className="block text-sm font-medium mb-2">Select Categories</label>
             <div className="flex flex-wrap gap-2">
@@ -142,7 +139,6 @@ function AskQuestion() {
             </div>
           </div>
 
-          {/* Anonymous Checkbox */}
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -156,7 +152,6 @@ function AskQuestion() {
             </label>
           </div>
 
-          {/* Submit Button */}
           <div className="text-right">
             <button
               type="submit"
@@ -167,6 +162,51 @@ function AskQuestion() {
           </div>
         </form>
       </div>
+
+
+      
+      {/* Success Dialog */}
+      <Dialog
+        open={questionSuccess}
+        onClose={() => setQuestionSuccess(false)}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      >
+        <Dialog.Panel className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-5 text-center">
+          <Dialog.Title className="text-2xl font-bold text-emerald-600">
+            Question Submitted
+          </Dialog.Title>
+          <p className="text-gray-700">
+            Thank you{!isAnonymous && currentUser?.firstName ? `, ${currentUser.firstName}` : ""}! Your question has been posted.
+          </p>
+          <button
+            onClick={() => setQuestionSuccess(false)}
+            className="mt-4 px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-semibold shadow-lg transition-all"
+          >
+            Continue
+          </button>
+        </Dialog.Panel>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog
+        open={!!questionError}
+        onClose={() => setQuestionError('')}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      >
+        <Dialog.Panel className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-5 text-center">
+          <Dialog.Title className="text-2xl font-bold text-rose-600">
+            Submission Failed
+          </Dialog.Title>
+          <p className="text-gray-700">{questionError}</p>
+          <button
+            onClick={() => setQuestionError('')}
+            className="mt-4 px-6 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-full font-semibold shadow-lg transition-all"
+          >
+            Try Again
+          </button>
+        </Dialog.Panel>
+      </Dialog>
+
     </div>
   );
 }
