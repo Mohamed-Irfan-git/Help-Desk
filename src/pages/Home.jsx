@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 
@@ -12,120 +12,94 @@ function Home() {
         { name: "Canteen", color: "pink" },
     ];
 
-    const helpers = [
-        { name: "Senior A", points: 125, badges: ["Helpful Hero", "First Responder"] },
-        { name: "Senior B", points: 110, badges: ["Tech Supporter"] },
-        { name: "Senior C", points: 95, badges: [] },
-    ];
-
-    const questions = [
-        "Where is the exam hall?",
-        "How to connect hostel WiFi?",
-        "How to apply for lab sessions?",
-        "Can I change my elective subjects?",
-        "What are the hostel rules?",
-    ];
-
-    const stats = {
-        questionsAnswered: 450,
-        activeUsers: 120,
-        helpfulAnswers: 300,
-    };
-
     const announcements = [
         "Midterm exams start next week — check the schedule!",
         "Hostel WiFi will be upgraded on July 15th.",
         "Join the Coding Club weekly meetup every Friday.",
     ];
 
+    const allQuestions = [
+        {
+            question: "Where is the exam hall?",
+            answer: "The exam hall is located in Building C, 2nd floor near the library.",
+        },
+        {
+            question: "How to connect hostel WiFi?",
+            answer: "Use your student ID to log in to the hostel WiFi portal. Password is emailed by IT department.",
+        },
+        {
+            question: "How to apply for lab sessions?",
+            answer: "You can apply through the academic portal under the 'Lab Registration' tab.",
+        },
+        {
+            question: "Can I change my elective subjects?",
+            answer: "Yes, within the first 2 weeks of the semester. Contact your department coordinator.",
+        },
+        {
+            question: "What are the hostel rules?",
+            answer: "Hostel rules include 10 PM curfew, no loud music after 9 PM, and mandatory biometric entry.",
+        },
+        {
+            question: "Where can I get ID card reissued?",
+            answer: "Visit the admin office with your old ID or a complaint copy.",
+        },
+        {
+            question: "Is medical leave accepted for attendance?",
+            answer: "Yes, with proper documents submitted to the department within 3 days.",
+        },
+    ];
+
+    const [showAll, setShowAll] = useState(false);
+    const [expanded, setExpanded] = useState(null);
+
+    const visibleQuestions = showAll ? allQuestions : allQuestions.slice(0, 4);
+
     return (
         <>
             <Header />
             <div className="max-w-6xl mx-auto p-8 space-y-20 py-29">
 
-                {/* Welcome Section */}
+                {/* Welcome */}
                 <section className="text-center">
                     <h1 className="text-4xl font-extrabold mb-4 tracking-wide">
-                        <span role="img" aria-label="wave">
-                            👋
-                        </span>{" "}
-                        Welcome to Help Desk!
+                        👋 Welcome to Help Desk!
                     </h1>
                     <p className="text-gray-700 text-lg max-w-3xl mx-auto leading-relaxed">
-                        A friendly platform where juniors can ask questions and seniors provide guidance  all
-                        to make your campus life easier and more connected.
+                        A friendly platform where juniors can ask questions and seniors provide guidance —
+                        all to make your campus life easier and more connected.
                     </p>
                 </section>
 
                 {/* Main Actions */}
                 <section className="flex flex-wrap justify-center gap-6">
-
                     <Link to="/ask-question">
-                        <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-md hover:scale-105 transform transition focus:outline-none focus:ring-4 focus:ring-blue-300">
-                            <span role="img" aria-label="question">
-                                ❓
-                            </span>{" "}
-                            Ask a Question
+                        <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-md hover:scale-105 transform transition">
+                            ❓ Ask a Question
                         </button>
                     </Link>
-
                     <Link to="/all-questions">
-                        <button className="flex items-center gap-2 bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-200 transition shadow-sm hover:shadow-md focus:outline-none focus:ring-4 focus:ring-gray-300">
-                            <span role="img" aria-label="search">
-                                🔍
-                            </span>{" "}
-                            Browse Questions
+                        <button className="flex items-center gap-2 bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-200 transition shadow-sm hover:shadow-md">
+                            🔍 Browse Questions
                         </button>
                     </Link>
-
-                    <Link to="/leader-board">
-                        <button className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-md hover:scale-105 transform transition focus:outline-none focus:ring-4 focus:ring-green-300">
-                            <span role="img" aria-label="trophy">
-                                🏆
-                            </span>{" "}
-                            View Leaderboard
-                        </button>
-                    </Link>
-
                 </section>
 
                 {/* Tip of the Day */}
-                <section className="p-6 bg-yellow-50 border-l-8 border-yellow-400 rounded shadow-md max-w-4xl mx-auto transition hover:shadow-lg">
-                    <h2 className="text-xl font-semibold mb-3 flex items-center gap-2 text-yellow-700">
-                        <span role="img" aria-label="light bulb">
-                            💡
-                        </span>{" "}
-                        Tip of the Day
-                    </h2>
-                    <p className="text-gray-700 leading-relaxed">
-                        Be specific when asking questions and tag relevant topics. Clear questions get faster and
-                        better answers!
+                <section className="p-6 bg-yellow-50 border-l-8 border-yellow-400 rounded shadow-md max-w-4xl mx-auto">
+                    <h2 className="text-xl font-semibold mb-3 flex items-center gap-2 text-yellow-700">💡 Tip of the Day</h2>
+                    <p className="text-gray-700">
+                        Be specific when asking questions and tag relevant topics. Clear questions get faster and better answers!
                     </p>
                 </section>
 
                 {/* Featured Topics */}
                 <section>
-                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                        <span role="img" aria-label="books">
-                            📚
-                        </span>{" "}
-                        Featured Topics
-                    </h2>
+                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">📚 Featured Topics</h2>
                     <div className="flex flex-wrap gap-4 justify-center">
                         {topics.map((topic) => (
                             <span
                                 key={topic.name}
-                                className={`
-        cursor-pointer rounded-full px-5 py-2 font-semibold
-        bg-${topic.color}-100 text-${topic.color}-700
-        hover:bg-${topic.color}-200
-        transition
-        shadow-sm hover:shadow-md
-        select-none
-        `}
-                                role="button"
-                                tabIndex={0}
-                                aria-label={`Topic: ${topic.name}`}
+                                className={`cursor-pointer rounded-full px-5 py-2 font-semibold bg-${topic.color}-100 text-${topic.color}-700 hover:bg-${topic.color}-200 shadow-sm hover:shadow-md select-none`}
                             >
                                 {topic.name}
                             </span>
@@ -138,26 +112,11 @@ function Home() {
                     <h2 className="text-3xl font-bold text-center">How It Works</h2>
                     <div className="grid gap-6 md:grid-cols-3">
                         {[
-                            {
-                                title: "Ask",
-                                desc: "Choose a topic and post your question anonymously or by name.",
-                                color: "bg-indigo-50",
-                            },
-                            {
-                                title: "Get Help",
-                                desc: "Peers and seniors answer and vote on helpful responses.",
-                                color: "bg-green-50",
-                            },
-                            {
-                                title: "Earn",
-                                desc: "Earn karma points and badges for helping others.",
-                                color: "bg-yellow-50",
-                            },
+                            { title: "Ask", desc: "Choose a topic and post your question anonymously or by name.", color: "bg-indigo-50" },
+                            { title: "Get Help", desc: "Peers and seniors answer and vote on helpful responses.", color: "bg-green-50" },
+                            {title: "Learn",desc: "Learn from real life questions and grow your knowledge.",color: "bg-yellow-50"},
                         ].map((step, idx) => (
-                            <div
-                                key={idx}
-                                className={`${step.color} p-6 rounded-2xl shadow hover:shadow-md transition`}
-                            >
+                            <div key={idx} className={`${step.color} p-6 rounded-2xl shadow hover:shadow-md`}>
                                 <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
                                 <p className="text-gray-600">{step.desc}</p>
                             </div>
@@ -165,89 +124,45 @@ function Home() {
                     </div>
                 </section>
 
-                {/* Top Helpers */}
-                <section>
-                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                        <span role="img" aria-label="trophy">
-                            🏆
-                        </span>{" "}
-                        Top Helpers This Month
-                    </h2>
-                    <ul className="space-y-6 max-w-3xl mx-auto">
-                        {helpers.map((helper, idx) => (
-                            <li
-                                key={helper.name}
-                                className="flex items-center justify-between border rounded-xl p-5 shadow-md hover:shadow-xl transition"
-                            >
-                                <div>
-                                    <p className="text-lg font-semibold flex items-center gap-2 select-none">
-                                        {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}. {helper.name}
-                                    </p>
-                                    <p className="text-sm text-gray-600">Karma Points: {helper.points}</p>
-                                    <div className="flex gap-2 mt-2 flex-wrap">
-                                        {helper.badges.length > 0 ? (
-                                            helper.badges.map((badge) => (
-                                                <span
-                                                    key={badge}
-                                                    className="flex items-center gap-1 bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold shadow-sm select-none"
-                                                    title={badge}
-                                                >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                        className="w-4 h-4"
-                                                    >
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                    {badge}
-                                                </span>
-                                            ))
-                                        ) : (
-                                            <span className="text-gray-400 italic text-xs">No badges yet</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <div
-                                    className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl select-none
-        ${idx === 0 ? "bg-yellow-400" : idx === 1 ? "bg-gray-400" : "bg-pink-400"}`}
-                                    aria-label={`Avatar for ${helper.name}`}
-                                >
-                                    {helper.name.charAt(0)}
-                                </div>
-                            </li>
+                {/* ✅ Success Stories */}
+                <section className="bg-green-50 p-8 rounded-lg max-w-5xl mx-auto text-center shadow-md">
+                    <h2 className="text-3xl font-semibold mb-6 text-green-700">🌟 Real Success Stories</h2>
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {[
+                            { name: "Anjali", story: "I got quick help with my hostel setup. This platform is a lifesaver!" },
+                            { name: "Ravi", story: "Thanks to seniors, I passed my difficult exam. Huge thanks!" },
+                            { name: "Meera", story: "Got answers to all my subject doubts within hours. Amazing support!" },
+                        ].map((user, index) => (
+                            <div key={index} className="bg-white rounded-xl p-6 shadow hover:shadow-lg">
+                                <p className="italic text-gray-600 mb-2">"{user.story}"</p>
+                                <p className="text-sm font-semibold text-gray-800">– {user.name}</p>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </section>
 
-                {/* Quick Stats */}
-                <section className="bg-gray-100 p-8 rounded-lg max-w-5xl mx-auto text-center shadow-md">
-                    <h2 className="text-3xl font-semibold mb-8">📊 Quick Stats</h2>
-                    <div className="flex flex-wrap justify-center gap-12 text-gray-700">
+                {/* ✅ Explore Clubs */}
+                <section className="bg-indigo-50 p-8 rounded-lg max-w-5xl mx-auto text-center shadow-md">
+                    <h2 className="text-3xl font-semibold mb-6 text-indigo-700">🏫 Explore Clubs & Events</h2>
+                    <div className="grid md:grid-cols-3 gap-6 text-left">
                         <div>
-                            <p className="text-4xl font-bold text-blue-600">{stats.questionsAnswered}</p>
-                            <p className="text-lg font-medium">Questions Answered</p>
+                            <h3 className="font-bold text-lg mb-2 text-indigo-800">🎨 Art & Culture Club</h3>
+                            <p className="text-gray-600 text-sm">Unleash your creativity through dance, music, and art competitions.</p>
                         </div>
                         <div>
-                            <p className="text-4xl font-bold text-green-600">{stats.activeUsers}</p>
-                            <p className="text-lg font-medium">Active Users</p>
+                            <h3 className="font-bold text-lg mb-2 text-indigo-800">💻 Coding Club</h3>
+                            <p className="text-gray-600 text-sm">Weekly hackathons, DSA challenges, and peer coding support sessions.</p>
                         </div>
                         <div>
-                            <p className="text-4xl font-bold text-yellow-600">{stats.helpfulAnswers}</p>
-                            <p className="text-lg font-medium">Helpful Answers</p>
+                            <h3 className="font-bold text-lg mb-2 text-indigo-800">🌱 Eco Warriors</h3>
+                            <p className="text-gray-600 text-sm">Join clean-up drives, eco-awareness campaigns, and tree-planting events.</p>
                         </div>
                     </div>
                 </section>
 
-                {/* Announcements */}
+                {/* 📢 Announcements */}
                 <section className="max-w-4xl mx-auto">
-                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2 text-red-600">
-                        <span role="img" aria-label="announcement">
-                            📢
-                        </span>{" "}
-                        Latest Announcements
-                    </h2>
+                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2 text-red-600">📢 Latest Announcements</h2>
                     <ul className="list-disc list-inside space-y-2 text-gray-800 text-lg">
                         {announcements.map((note, i) => (
                             <li key={i}>{note}</li>
@@ -255,36 +170,44 @@ function Home() {
                     </ul>
                 </section>
 
-                {/* Recently Asked Questions */}
+                {/* ✅ Recently Asked Questions & Answers */}
                 <section>
-                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2 text-blue-700">
-                        <span role="img" aria-label="new">
-                            🆕
-                        </span>{" "}
-                        Recently Asked Questions
-                    </h2>
-                    <ul className="space-y-3 max-w-3xl mx-auto">
-                        {questions.map((question) => (
-                            <li key={question}>
-                                <a
-                                    href="#"
-                                    className="text-blue-600 underline hover:text-blue-800 transition focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
-                                >
-                                    {question}
-                                </a>
+                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2 text-blue-700">🆕 Recently Asked Questions</h2>
+                    <ul className="space-y-6 max-w-3xl mx-auto">
+                        {visibleQuestions.map((qa, index) => (
+                            <li
+                                key={index}
+                                className="bg-white p-5 rounded-lg shadow hover:shadow-md transition border border-blue-100 cursor-pointer"
+                                onClick={() => setExpanded(expanded === index ? null : index)}
+                            >
+                                <p className="text-lg font-semibold text-gray-800 flex justify-between items-center">
+                                    ❓ {qa.question}
+                                    <span>{expanded === index ? "−" : "+"}</span>
+                                </p>
+                                {expanded === index && (
+                                    <p className="text-gray-700 mt-2">💬 {qa.answer}</p>
+                                )}
                             </li>
                         ))}
                     </ul>
+                    <div className="text-center mt-6">
+                        <button
+                            onClick={() => setShowAll(!showAll)}
+                            className="text-blue-600 underline hover:text-blue-800 transition"
+                        >
+                            {showAll ? "Show Less" : "See More Questions"}
+                        </button>
+                    </div>
                 </section>
 
-                {/* Call to Action Banner */}
+                {/* CTA */}
                 <section className="bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-lg p-10 text-center shadow-lg max-w-4xl mx-auto">
                     <h2 className="text-3xl font-bold mb-4">Ready to help or need help?</h2>
                     <p className="text-lg mb-6 max-w-xl mx-auto">
                         Join the Peer Help Desk community and start asking or answering questions today!
                     </p>
                     <Link to="/">
-                        <button className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition focus:outline-none focus:ring-4 focus:ring-white cursor-pointer">
+                        <button className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition">
                             Get Started
                         </button>
                     </Link>
@@ -295,7 +218,6 @@ function Home() {
                     © 2025 Help Desk — Helping juniors succeed!
                 </footer>
             </div>
-
         </>
     );
 }

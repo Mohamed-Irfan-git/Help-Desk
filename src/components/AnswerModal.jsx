@@ -1,5 +1,6 @@
 import React from 'react';
 
+// eslint-disable-next-line no-unused-vars
 function AnswerModal({ answer, setAnswer, isAnonymous, setIsAnonymous, onClose, onSubmit }) {
   const isAnswerEmpty = answer.trim() === '';
 
@@ -32,7 +33,7 @@ function AnswerModal({ answer, setAnswer, isAnonymous, setIsAnonymous, onClose, 
         {isAnswerEmpty && <p className="text-sm text-red-500 -mt-2">Answer is required.</p>}
 
         {/* Toggle Mode */}
-        <div className="flex items-center justify-between">
+        {/* <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-gray-600">
             Mode: {isAnonymous ? 'Anonymous' : 'Regular'}
           </label>
@@ -42,7 +43,7 @@ function AnswerModal({ answer, setAnswer, isAnonymous, setIsAnonymous, onClose, 
           >
             Toggle to {isAnonymous ? 'Regular' : 'Anonymous'}
           </button>
-        </div>
+        </div> */}
 
         {/* Submit Button */}
         <div className="text-center pt-2">

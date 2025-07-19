@@ -4,6 +4,37 @@ import Header from '../components/Header';
 import ThankYou from '../components/ThankYou';
 import AnswerModal from '../components/AnswerModal';
 
+function LoadingSpinner() {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-white">
+      <div className="flex items-center space-x-3">
+        <svg
+          className="animate-spin h-10 w-10 text-rose-500"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          aria-label="Loading"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+        <span className="text-rose-600 font-semibold text-lg">Loading question...</span>
+      </div>
+    </div>
+  );
+}
+
 function SingleQuestionPage() {
     const { id } = useParams(); // get question ID from URL
     const [question, setQuestion] = useState(null);
@@ -12,6 +43,8 @@ function SingleQuestionPage() {
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [showThankYou, setShowThankYou] = useState(false);
 
+    // Get current user from sessionStorage
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
 
     useEffect(() => {
         fetch(`http://localhost:8080/api/questions/${id}`, {
@@ -23,24 +56,20 @@ function SingleQuestionPage() {
     }, [id]);
 
     const handleSubmit = () => {
-
-        // Get current user from sessionStorage
-        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-
         if (!currentUser) {
             alert('Please log in to submit a question.');
             return;
         }
-        
+
         const newAnswer = {
             answerId: 0,
             description: answer,
             createdAt: new Date().toISOString(),
             vote: 0,
-            userId: 0,
+            userId: currentUser.userId,
             questionId: parseInt(id),
         };
-        console.log(newAnswer);
+
         fetch('http://localhost:8080/api/answers', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -52,11 +81,24 @@ function SingleQuestionPage() {
                 return res.json();
             })
             .then(() => {
+                // Close modal and reset form
                 setIsModalOpen(false);
                 setAnswer('');
                 setIsAnonymous(false);
                 setShowThankYou(true);
-                setTimeout(() => setShowThankYou(false), 3000);
+
+                // Re-fetch the question to update answers in real-time
+                fetch(`http://localhost:8080/api/questions/${id}`, { credentials: 'include' })
+                    .then(res => res.json())
+                    .then(updatedQuestion => {
+                        setQuestion(updatedQuestion);
+                    })
+                    .catch(err => {
+                        console.error('Error fetching updated question:', err);
+                    });
+
+                // Hide thank you message after 2 seconds
+                setTimeout(() => setShowThankYou(false), 2000);
             })
             .catch(err => {
                 console.error('Error submitting answer:', err);
@@ -64,7 +106,7 @@ function SingleQuestionPage() {
             });
     };
 
-    if (!question) return <div className="text-center py-10">Loading question...</div>;
+    if (!question) return <LoadingSpinner />;
 
     return (
         <>
@@ -130,7 +172,7 @@ function SingleQuestionPage() {
                                     question.answers.map((ans, idx) => (
                                         <div key={idx} className="border-l-4 border-rose-400 pl-4">
                                             <p className="font-medium text-gray-800">
-                                                {ans.userId === 0 ? 'Anonymous' : ans.userName || 'User'}
+                                                {currentUser.firstName + ' ' + currentUser.lastName}
                                             </p>
                                             <p className="italic text-gray-700 text-base">"{ans.description}"</p>
                                             <p className="text-xs text-gray-500 mt-1">

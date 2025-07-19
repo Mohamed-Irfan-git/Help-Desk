@@ -72,8 +72,8 @@ function Header() {
             <NavLink label="Home" to="/" icon={<Home size={18} />} />
             <NavLink label="Questions" to="/all-questions" icon={<HelpCircle size={18} />} />
             <NavLink label="Ask" to="/ask-question" icon={<PlusCircle size={18} />} />
-            <NavLink label="Leaderboard" to="/leader-board" icon={<BarChart3 size={18} />} />
-            <NavLink label="Analytics" to="/analytics" icon={<PieChart size={18} />} />
+            {/* <NavLink label="Leaderboard" to="/leader-board" icon={<BarChart3 size={18} />} />
+            <NavLink label="Analytics" to="/analytics" icon={<PieChart size={18} />} /> */}
             <NavLink label="Profile" to="/user-dashboard" icon={<User size={18} />} />
 
             {isLoggedIn ? (
@@ -114,8 +114,8 @@ function Header() {
           <NavLink label="Home" to="/" onClick={toggleMenu} mobile icon={<Home size={18} />} />
           <NavLink label="Questions" to="/all-questions" onClick={toggleMenu} mobile icon={<HelpCircle size={18} />} />
           <NavLink label="Ask" to="/ask-question" onClick={toggleMenu} mobile icon={<PlusCircle size={18} />} />
-          <NavLink label="Leaderboard" to="/leader-board" onClick={toggleMenu} mobile icon={<BarChart3 size={18} />} />
-          <NavLink label="Analytics" to="/analytics" onClick={toggleMenu} mobile icon={<PieChart size={18} />} />
+          {/* <NavLink label="Leaderboard" to="/leader-board" onClick={toggleMenu} mobile icon={<BarChart3 size={18} />} />
+          <NavLink label="Analytics" to="/analytics" onClick={toggleMenu} mobile icon={<PieChart size={18} />} /> */}
           <NavLink label="Profile" to="/user-dashboard" onClick={toggleMenu} mobile icon={<User size={18} />} />
 
           {isLoggedIn ? (

@@ -1,7 +1,39 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { Dialog, Transition } from '@headlessui/react';
 import Header from '../components/Header';
+
+function LoadingSpinner() {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-white">
+      <div className="flex items-center space-x-3">
+        <svg
+          className="animate-spin h-10 w-10 text-rose-500"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          aria-label="Loading"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+        <span className="text-rose-600 font-semibold text-lg">Loading User...</span>
+      </div>
+    </div>
+  );
+}
 
 function UserDashboard() {
   const [user, setUser] = useState(null);
@@ -11,12 +43,16 @@ function UserDashboard() {
   const [editedDescription, setEditedDescription] = useState('');
   const [selectedQuestion, setSelectedQuestion] = useState(null);
 
-  // eslint-disable-next-line no-unused-vars
   const [questions, setQuestions] = useState([]);
-    // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(true);
-    // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState(null);
+
+  // Delete confirmation modal state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState(null);
+
+  // Success dialog for delete/update
+  const [successMessage, setSuccessMessage] = useState(null);
 
   // Load current user from sessionStorage
   useEffect(() => {
@@ -25,9 +61,9 @@ function UserDashboard() {
       const parsedUser = JSON.parse(storedUser);
       setUser({
         userId: parsedUser.userId,
-        name: parsedUser.firstName + ' ' + parsedUser.lastName,
+        name: `${parsedUser.firstName} ${parsedUser.lastName}`,
         email: parsedUser.email,
-        badges: ['Helpful Hero', 'First Responder'],
+        badges: ['newBie'],
         questionsAsked: 0,
         answersGiven: 0,
         myQuestions: [],
@@ -38,13 +74,13 @@ function UserDashboard() {
   // Fetch questions from backend
   const fetchQuestions = () => {
     setLoading(true);
-    fetch("http://localhost:8080/api/questions", {
-      method: "GET",
-      credentials: "include",
+    fetch('http://localhost:8080/api/questions', {
+      method: 'GET',
+      credentials: 'include',
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Network response was not ok " + response.status);
+          throw new Error('Network response was not ok ' + response.status);
         }
         return response.json();
       })
@@ -96,7 +132,7 @@ function UserDashboard() {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedQuestion),
-      credentials: "include",
+      credentials: 'include',
     })
       .then((res) => {
         if (!res.ok) {
@@ -105,7 +141,7 @@ function UserDashboard() {
         return res.json();
       })
       .then(() => {
-        alert('Question updated successfully!');
+        setSuccessMessage('Question updated successfully!');
         setEditQuestion(null);
         setSearchTerm('');
         fetchQuestions();
@@ -115,18 +151,25 @@ function UserDashboard() {
       });
   };
 
-  const handleDelete = (question) => {
-    if (!window.confirm(`Are you sure you want to delete the question:\n"${question.title}"?`)) return;
+  // Open Delete Confirmation Modal instead of immediate delete
+  const confirmDelete = (question) => {
+    setQuestionToDelete(question);
+    setIsDeleteModalOpen(true);
+  };
 
-    fetch(`http://localhost:8080/api/questions/${question.questionId}`, {
+  // Called when user confirms delete in modal
+  const performDelete = () => {
+    if (!questionToDelete) return;
+
+    fetch(`http://localhost:8080/api/questions/${questionToDelete.questionId}`, {
       method: 'DELETE',
-      credentials: "include",
+      credentials: 'include',
     })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to delete: ${res.status}`);
         }
-        alert('Question deleted successfully!');
+        setSuccessMessage('Question deleted successfully!');
         setEditQuestion(null);
         setSelectedQuestion(null);
         setSearchTerm('');
@@ -134,6 +177,10 @@ function UserDashboard() {
       })
       .catch((err) => {
         alert('Error deleting question: ' + err.message);
+      })
+      .finally(() => {
+        setIsDeleteModalOpen(false);
+        setQuestionToDelete(null);
       });
   };
 
@@ -141,7 +188,9 @@ function UserDashboard() {
     setSelectedQuestion(question);
   };
 
-  if (!user) return <p className="pt-24 text-center text-gray-500">Loading user data...</p>;
+
+if (!user) return <LoadingSpinner />;
+
 
   return (
     <>
@@ -174,7 +223,6 @@ function UserDashboard() {
             <div className="pt-2">
               <h3 className="font-semibold text-gray-800 mb-1">📊 Stats</h3>
               <p className="text-sm">Questions Asked: {user.questionsAsked}</p>
-              <p className="text-sm">Answers Given: {user.answersGiven}</p>
             </div>
           </div>
 
@@ -202,27 +250,40 @@ function UserDashboard() {
             {user.myQuestions.length > 0 ? (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {user.myQuestions
-                  .filter((q) =>
-                    q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    (q.description && q.description.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter(
+                    (q) =>
+                      q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      (q.description &&
+                        q.description.toLowerCase().includes(searchTerm.toLowerCase()))
                   )
                   .map((q, idx) => (
                     <div
                       key={idx}
                       onClick={() => handleCardClick(q)}
                       className={`cursor-pointer p-4 rounded-xl border-l-4 shadow-sm hover:scale-[1.02] transition ${
-                        q.status === 'Answered' ? 'bg-green-50 border-green-500' : 'bg-yellow-50 border-yellow-500'
+                        q.status === 'Answered'
+                          ? 'bg-green-50 border-green-500'
+                          : 'bg-yellow-50 border-yellow-500'
                       } relative`}
                     >
                       <p className="font-medium text-gray-800 truncate" title={q.title}>
                         ❓ {q.title}
                       </p>
-                      <p className="text-sm text-gray-600 truncate" title={q.description}>
+                      <p
+                        className="text-sm text-gray-600 truncate"
+                        title={q.description}
+                      >
                         📄 {q.description || 'No description'}
                       </p>
                       <p className="text-sm text-gray-600">
                         Status:{' '}
-                        <span className={`font-semibold ${q.status === 'Answered' ? 'text-green-600' : 'text-yellow-700'}`}>
+                        <span
+                          className={`font-semibold ${
+                            q.status === 'Answered'
+                              ? 'text-green-600'
+                              : 'text-yellow-700'
+                          }`}
+                        >
                           {q.status}
                         </span>
                       </p>
@@ -230,30 +291,30 @@ function UserDashboard() {
                         📅 {new Date(q.createdDate).toDateString()}
                       </p>
 
-                      {/* Edit button */}
+                      {/* Delete button - top right */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          confirmDelete(q);
+                        }}
+                        className="absolute top-2 right-2 text-red-600 hover:text-red-800 text-lg font-bold cursor-pointer"
+                        title="Delete Question"
+                        aria-label="Delete Question"
+                      >
+                        &times;
+                      </button>
+
+                      {/* Edit button - bottom right */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           openEditModal(q);
                         }}
-                        className="absolute top-2 right-8 text-blue-600 hover:text-blue-800 text-lg font-bold"
+                        className="absolute bottom-2 right-2 text-blue-600 hover:text-blue-800 text-lg font-bold cursor-pointer"
                         title="Edit Question"
                         aria-label="Edit Question"
                       >
                         ✏️
-                      </button>
-
-                      {/* Delete button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(q);
-                        }}
-                        className="absolute top-2 right-2 text-red-600 hover:text-red-800 text-lg font-bold"
-                        title="Delete Question"
-                        aria-label="Delete Question"
-                      >
-                        &times;
                       </button>
                     </div>
                   ))}
@@ -264,6 +325,62 @@ function UserDashboard() {
           </div>
         </div>
 
+        {/* Delete Confirmation Modal */}
+        <Transition appear show={isDeleteModalOpen} as={Fragment}>
+          <Dialog
+            as="div"
+            className="fixed inset-0 z-50 overflow-y-auto"
+            onClose={() => setIsDeleteModalOpen(false)}
+          >
+            <div className="min-h-screen px-4 text-center bg-black/30 backdrop-blur-sm">
+              <span className="inline-block h-screen align-middle" aria-hidden="true">
+                &#8203;
+              </span>
+
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-xl shadow-xl">
+                  <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900">
+                    Confirm Delete
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Are you sure you want to delete the question:
+                    </p>
+                    <p className="mt-2 font-medium text-gray-700">
+                      "{questionToDelete?.title}"
+                    </p>
+                  </div>
+
+                  <div className="mt-6 flex justify-end gap-3">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                      onClick={() => setIsDeleteModalOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      onClick={performDelete}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </Dialog>
+        </Transition>
+
         {/* Edit Modal */}
         <Transition appear show={!!editQuestion} as={Fragment}>
           <Dialog
@@ -272,11 +389,7 @@ function UserDashboard() {
             onClose={() => setEditQuestion(null)}
           >
             <div className="min-h-screen px-4 text-center bg-black/30 backdrop-blur-sm">
-              {/* Trick to center dialog */}
-              <span
-                className="inline-block h-screen align-middle"
-                aria-hidden="true"
-              >
+              <span className="inline-block h-screen align-middle" aria-hidden="true">
                 &#8203;
               </span>
 
@@ -317,7 +430,9 @@ function UserDashboard() {
                     />
                   </div>
 
-                  <p className="text-sm text-gray-700 mb-4">Status: {editQuestion?.status}</p>
+                  <p className="text-sm text-gray-700 mb-4">
+                    Status: {editQuestion?.status}
+                  </p>
                   <p className="text-xs text-gray-500 mb-6">
                     📅 {editQuestion && new Date(editQuestion.createdDate).toDateString()}
                   </p>
@@ -325,7 +440,7 @@ function UserDashboard() {
                   <div className="flex justify-between gap-2">
                     <button
                       className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-                      onClick={() => handleDelete(editQuestion)}
+                      onClick={() => confirmDelete(editQuestion)}
                     >
                       Delete
                     </button>
@@ -358,10 +473,7 @@ function UserDashboard() {
             onClose={() => setSelectedQuestion(null)}
           >
             <div className="min-h-screen px-4 text-center bg-black/30 backdrop-blur-sm">
-              <span
-                className="inline-block h-screen align-middle"
-                aria-hidden="true"
-              >
+              <span className="inline-block h-screen align-middle" aria-hidden="true">
                 &#8203;
               </span>
 
@@ -382,17 +494,25 @@ function UserDashboard() {
                     📖 Question Details
                   </Dialog.Title>
 
-                  <p className="mb-2"><strong>❓ Title:</strong> {selectedQuestion?.title}</p>
-                  <p className="mb-2"><strong>📄 Description:</strong> {selectedQuestion?.description || 'No description'}</p>
+                  <p className="mb-2">
+                    <strong>❓ Title:</strong> {selectedQuestion?.title}
+                  </p>
+                  <p className="mb-2">
+                    <strong>📄 Description:</strong>{' '}
+                    {selectedQuestion?.description || 'No description'}
+                  </p>
                   <p className="mb-2">
                     <strong>📅 Date:</strong>{' '}
-                    {selectedQuestion && new Date(selectedQuestion.createdDate).toDateString()}
+                    {selectedQuestion &&
+                      new Date(selectedQuestion.createdDate).toDateString()}
                   </p>
                   <p className="mb-2">
                     <strong>📌 Status:</strong>{' '}
                     <span
                       className={`font-semibold ${
-                        selectedQuestion?.status === 'Answered' ? 'text-green-600' : 'text-yellow-700'
+                        selectedQuestion?.status === 'Answered'
+                          ? 'text-green-600'
+                          : 'text-yellow-700'
                       }`}
                     >
                       {selectedQuestion?.status}
@@ -401,19 +521,51 @@ function UserDashboard() {
 
                   {selectedQuestion?.answers && selectedQuestion.answers.length > 0 ? (
                     <div className="mt-4">
-                      <h4 className="font-semibold text-gray-800 mb-2">✅ Answers:</h4>
-                      <ul className="list-disc list-inside text-sm space-y-1 text-gray-700">
-                        {selectedQuestion.answers.map((ans, i) => (
-                          <li key={i}>{ans.answer}</li>
+                      <h4 className="text-md font-semibold text-gray-800 mb-2">
+                        ✅ Answers:
+                      </h4>
+                      <ul className="space-y-3 text-sm text-gray-700">
+                        {selectedQuestion.answers.map((answer, index) => (
+                          <li
+                            key={index}
+                            className="bg-gray-50 border rounded-lg p-3"
+                          >
+                            <p>{answer.description}</p>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Posted on:{' '}
+                              {new Date(answer.createdAt).toLocaleDateString()}
+                            </div>
+                          </li>
                         ))}
                       </ul>
                     </div>
                   ) : (
-                    <p className="text-sm text-red-500 mt-4">No answers provided yet.</p>
+                    <p className="text-sm text-red-500 mt-4">
+                      No answers provided yet.
+                    </p>
                   )}
                 </Dialog.Panel>
               </Transition.Child>
             </div>
+          </Dialog>
+        </Transition>
+
+        {/* Success Message Dialog */}
+        <Transition appear show={!!successMessage} as={Fragment}>
+          <Dialog
+            as="div"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            onClose={() => setSuccessMessage(null)}
+          >
+            <Dialog.Panel className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-5 text-center">
+              <p className="text-gray-700">{successMessage}</p>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+              >
+                Close
+              </button>
+            </Dialog.Panel>
           </Dialog>
         </Transition>
       </div>

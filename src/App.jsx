@@ -22,7 +22,7 @@ import Error from './pages/Error';
 function App() {
   return (
     <Routes>
-      
+
       <Route path='/login' element={<Login />} />
       <Route path='/register' element={<Register />} />
       <Route path='/reset-password' element={<Resetpasword />} />
@@ -30,12 +30,13 @@ function App() {
       <Route path="/single-question/:id" element={<SingleQuestion />} />
       <Route path='/ask-question' element={<AskQuestion />} />
       <Route path='/user-dashboard' element={<UserDashboard />} />
-      <Route path='/analytics' element={<Analytics />} />
-      <Route path='/leader-board' element={<LeaderBoard />} />
-      <Route path='/admin-dashBord' element={<AdminDashBord />} />
       <Route path='/' element={<Home />} />
       <Route path='/*' element={<Error />} />
 
+      {/*       
+      <Route path='/analytics' element={<Analytics />} />
+      <Route path='/leader-board' element={<LeaderBoard />} />
+      <Route path='/admin-dashBord' element={<AdminDashBord />} /> */}
     </Routes>
   )
 }
