@@ -1,113 +1,288 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ShieldCheck, Users, HelpCircle, Settings, FileQuestion, FileCheck2, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
 
-function AdminDashBord() {
-  const stats = {
-    totalUsers: 154,
-    totalQuestions: 412,
-    pendingQuestions: 23,
-    answeredQuestions: 389,
-    totalAnswers: 986,
+function AdminPostForms() {
+  // Announcement states
+  const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [announcementContent, setAnnouncementContent] = useState('');
+  const [announcementLoading, setAnnouncementLoading] = useState(false);
+  const [announcementSuccess, setAnnouncementSuccess] = useState('');
+  const [announcementError, setAnnouncementError] = useState('');
+
+  // Category states
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryLoading, setCategoryLoading] = useState(false);
+  const [categorySuccess, setCategorySuccess] = useState('');
+  const [categoryError, setCategoryError] = useState('');
+
+  // Department states
+  const [departmentName, setDepartmentName] = useState('');
+  const [departmentLoading, setDepartmentLoading] = useState(false);
+  const [departmentSuccess, setDepartmentSuccess] = useState('');
+  const [departmentError, setDepartmentError] = useState('');
+
+  // Handle Announcement submit
+  const handleAnnouncementSubmit = async (e) => {
+    e.preventDefault();
+    setAnnouncementLoading(true);
+    setAnnouncementSuccess('');
+    setAnnouncementError('');
+
+    const announcementData = {
+      title: announcementTitle.trim(),
+      description: announcementContent.trim(),
+      createdDate: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch('http://localhost:8080/api/announcements', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(announcementData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status}`);
+      }
+
+      setAnnouncementTitle('');
+      setAnnouncementContent('');
+      setAnnouncementSuccess('Announcement posted successfully!');
+    } catch (error) {
+      setAnnouncementError(error.message);
+    } finally {
+      setAnnouncementLoading(false);
+    }
   };
 
-  const cards = [
-    {
-      title: 'Total Users',
-      value: stats.totalUsers,
-      color: 'blue',
-      icon: <Users className="w-6 h-6 text-blue-600" />,
-    },
-    {
-      title: 'Total Questions',
-      value: stats.totalQuestions,
-      color: 'yellow',
-      icon: <FileQuestion className="w-6 h-6 text-yellow-500" />,
-    },
-    {
-      title: 'Answers Provided',
-      value: stats.totalAnswers,
-      color: 'green',
-      icon: <FileCheck2 className="w-6 h-6 text-green-600" />,
-    },
-    {
-      title: 'Answered Questions',
-      value: stats.answeredQuestions,
-      color: 'purple',
-      icon: <ShieldCheck className="w-6 h-6 text-purple-600" />,
-    },
-    {
-      title: 'Pending Questions',
-      value: stats.pendingQuestions,
-      color: 'red',
-      icon: <AlertTriangle className="w-6 h-6 text-red-600" />,
-    },
-  ];
+  // Handle Category submit
+  const handleCategorySubmit = async (e) => {
+    e.preventDefault();
+    setCategoryLoading(true);
+    setCategorySuccess('');
+    setCategoryError('');
+
+    const categoryData = {
+      name: categoryName.trim(),
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch('http://localhost:8080/api/categories', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(categoryData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status}`);
+      }
+
+      setCategoryName('');
+      setCategorySuccess('Category added successfully!');
+    } catch (error) {
+      setCategoryError(error.message);
+    } finally {
+      setCategoryLoading(false);
+    }
+  };
+
+  // Handle Department submit
+  const handleDepartmentSubmit = async (e) => {
+    e.preventDefault();
+    setDepartmentLoading(true);
+    setDepartmentSuccess('');
+    setDepartmentError('');
+
+    const departmentData = {
+      name: departmentName.trim(),
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch('http://localhost:8080/api/department', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(departmentData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status}`);
+      }
+
+      setDepartmentName('');
+      setDepartmentSuccess('Department added successfully!');
+    } catch (error) {
+      setDepartmentError(error.message);
+    } finally {
+      setDepartmentLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 px-6 py-8">
-      <h1 className="text-3xl font-bold text-center text-blue-800 mb-10">🛠️ Admin Dashboard</h1>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-12">
+        🛠️ Admin Post Forms
+      </h1>
 
-      {/* Stats Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
-        {cards.map((card, i) => (
-          <div
-            key={i}
-            className={`bg-white border-l-4 border-${card.color}-500 p-6 rounded-xl shadow hover:shadow-xl transition`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-semibold text-gray-700">{card.title}</h2>
-              {card.icon}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {/* Announcement Form */}
+        <div className="bg-white rounded-xl shadow-md p-8">
+          <h2 className="text-2xl font-semibold mb-6 text-blue-700 text-center">
+            Create Announcement
+          </h2>
+          <form onSubmit={handleAnnouncementSubmit} className="space-y-5">
+            <div>
+              <label
+                htmlFor="announcementTitle"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Title
+              </label>
+              <input
+                id="announcementTitle"
+                type="text"
+                required
+                value={announcementTitle}
+                onChange={(e) => setAnnouncementTitle(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Announcement title"
+                disabled={announcementLoading}
+              />
             </div>
-            <p className={`text-3xl font-bold text-${card.color}-700`}>{card.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Admin Controls */}
-      <div className="max-w-6xl mx-auto">
-        <h3 className="text-2xl font-semibold text-gray-800 mb-6">🔧 Admin Controls</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-          <Link to="/admin/users">
-            <div className="bg-white p-6 rounded-xl border hover:border-blue-500 shadow hover:shadow-lg transition cursor-pointer">
-              <h4 className="text-blue-700 font-semibold text-lg">Manage Users</h4>
-              <p className="text-sm text-gray-600 mt-2">View, edit, or block user accounts.</p>
+            <div>
+              <label
+                htmlFor="announcementContent"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Content
+              </label>
+              <textarea
+                id="announcementContent"
+                rows={4}
+                required
+                value={announcementContent}
+                onChange={(e) => setAnnouncementContent(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Announcement content"
+                disabled={announcementLoading}
+              />
             </div>
-          </Link>
+            <button
+              type="submit"
+              disabled={announcementLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition disabled:opacity-50"
+            >
+              {announcementLoading ? 'Posting...' : 'Post Announcement'}
+            </button>
+            {announcementSuccess && (
+              <p className="mt-4 text-green-600 font-semibold text-center">
+                {announcementSuccess}
+              </p>
+            )}
+            {announcementError && (
+              <p className="mt-4 text-red-600 font-semibold text-center">
+                {announcementError}
+              </p>
+            )}
+          </form>
+        </div>
 
-          <Link to="/admin/questions">
-            <div className="bg-white p-6 rounded-xl border hover:border-yellow-500 shadow hover:shadow-lg transition cursor-pointer">
-              <h4 className="text-yellow-700 font-semibold text-lg">Manage Questions</h4>
-              <p className="text-sm text-gray-600 mt-2">Moderate or delete reported questions.</p>
+        {/* Category Form */}
+        <div className="bg-white rounded-xl shadow-md p-8">
+          <h2 className="text-2xl font-semibold mb-6 text-green-700 text-center">
+            Add Category
+          </h2>
+          <form onSubmit={handleCategorySubmit} className="space-y-5">
+            <div>
+              <label
+                htmlFor="categoryName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Category Name
+              </label>
+              <input
+                id="categoryName"
+                type="text"
+                required
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Category name"
+                disabled={categoryLoading}
+              />
             </div>
-          </Link>
+            <button
+              type="submit"
+              disabled={categoryLoading}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-md transition disabled:opacity-50"
+            >
+              {categoryLoading ? 'Adding...' : 'Add Category'}
+            </button>
+            {categorySuccess && (
+              <p className="mt-4 text-green-600 font-semibold text-center">
+                {categorySuccess}
+              </p>
+            )}
+            {categoryError && (
+              <p className="mt-4 text-red-600 font-semibold text-center">
+                {categoryError}
+              </p>
+            )}
+          </form>
+        </div>
 
-          <Link to="/admin/answers">
-            <div className="bg-white p-6 rounded-xl border hover:border-green-500 shadow hover:shadow-lg transition cursor-pointer">
-              <h4 className="text-green-700 font-semibold text-lg">Manage Answers</h4>
-              <p className="text-sm text-gray-600 mt-2">Edit or remove inappropriate answers.</p>
+        {/* Department Form */}
+        <div className="bg-white rounded-xl shadow-md p-8">
+          <h2 className="text-2xl font-semibold mb-6 text-purple-700 text-center">
+            Add Department
+          </h2>
+          <form onSubmit={handleDepartmentSubmit} className="space-y-5">
+            <div>
+              <label
+                htmlFor="departmentName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Department Name
+              </label>
+              <input
+                id="departmentName"
+                type="text"
+                required
+                value={departmentName}
+                onChange={(e) => setDepartmentName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Department name"
+                disabled={departmentLoading}
+              />
             </div>
-          </Link>
-
-          <Link to="/admin/reports">
-            <div className="bg-white p-6 rounded-xl border hover:border-red-500 shadow hover:shadow-lg transition cursor-pointer">
-              <h4 className="text-red-600 font-semibold text-lg">Review Reports</h4>
-              <p className="text-sm text-gray-600 mt-2">Review flagged content by users.</p>
-            </div>
-          </Link>
-
-          <Link to="/admin/settings">
-            <div className="bg-white p-6 rounded-xl border hover:border-gray-500 shadow hover:shadow-lg transition cursor-pointer">
-              <h4 className="text-gray-700 font-semibold text-lg">Site Settings</h4>
-              <p className="text-sm text-gray-600 mt-2">Configure global settings and roles.</p>
-            </div>
-          </Link>
-
+            <button
+              type="submit"
+              disabled={departmentLoading}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-md transition disabled:opacity-50"
+            >
+              {departmentLoading ? 'Adding...' : 'Add Department'}
+            </button>
+            {departmentSuccess && (
+              <p className="mt-4 text-green-600 font-semibold text-center">
+                {departmentSuccess}
+              </p>
+            )}
+            {departmentError && (
+              <p className="mt-4 text-red-600 font-semibold text-center">
+                {departmentError}
+              </p>
+            )}
+          </form>
         </div>
       </div>
     </div>
   );
 }
 
-export default AdminDashBord;
+export default AdminPostForms;

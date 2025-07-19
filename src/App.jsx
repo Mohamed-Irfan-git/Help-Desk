@@ -32,11 +32,11 @@ function App() {
       <Route path='/user-dashboard' element={<UserDashboard />} />
       <Route path='/' element={<Home />} />
       <Route path='/*' element={<Error />} />
-
+      <Route path='/admin-dashBord-in' element={<AdminDashBord />} /> 
       {/*       
       <Route path='/analytics' element={<Analytics />} />
       <Route path='/leader-board' element={<LeaderBoard />} />
-      <Route path='/admin-dashBord' element={<AdminDashBord />} /> */}
+      */}
     </Routes>
   )
 }
