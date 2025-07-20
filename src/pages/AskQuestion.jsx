@@ -59,7 +59,7 @@ function AskQuestion() {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/questions', {
+      const response = await fetch('http://helpdesk-env.eba-pamex2iy.eu-north-1.elasticbeanstalk.com/api/questions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

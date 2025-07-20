@@ -80,7 +80,7 @@ function Home() {
             setLoadingAnnouncements(true);
             setErrorAnnouncements(null);
             try {
-                const response = await fetch("http://localhost:8080/api/announcements", {
+                const response = await fetch("http://helpdesk-env.eba-pamex2iy.eu-north-1.elasticbeanstalk.com/api/announcements", {
                     method: "GET",
                     credentials: "include",
                 });

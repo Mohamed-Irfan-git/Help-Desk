@@ -44,7 +44,7 @@ function AllQuestionsPage() {
 
     if (currentUser) {
       // User logged in — fetch real questions
-      fetch("http://localhost:8080/api/questions", {
+      fetch("http://helpdesk-env.eba-pamex2iy.eu-north-1.elasticbeanstalk.com/api/questions", {
         method: "GET",
         credentials: "include",
       })
