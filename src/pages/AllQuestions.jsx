@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
-import QuestionCard from "../components/questionCard";
+import QuestionCard from "../components/QuestionCard";
 
 // Dummy data to show when user is NOT logged in
 const dummyQuestions = [

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
-import imageSign from "../../assets/siginImage.jpg";
+import ImageSign from "../../assets/siginImage.jpg";
 
 function Register() {
   const [firstName, setFirstName] = useState("");
@@ -221,7 +221,7 @@ function Register() {
           </div>
 
           <div className="flex-1 hidden md:flex justify-center items-center bg-cover bg-center">
-            <img src={imageSign} alt="..." className="max-w-full h-auto" />
+            <img src={ImageSign} alt="..." className="max-w-full h-auto" />
           </div>
         </div>
       </div>
