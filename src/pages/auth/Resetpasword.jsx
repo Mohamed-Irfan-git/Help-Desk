@@ -20,7 +20,7 @@ function ResetPassword() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/resetcode", {
+      const response = await fetch("http://helpdesk-env.eba-pamex2iy.eu-north-1.elasticbeanstalk.com/api/auth/resetcode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -69,7 +69,7 @@ function ResetPassword() {
 
     try {
       const response = await fetch(
-        "http://localhost:8080/api/auth/resetpassword",
+        "http://helpdesk-env.eba-pamex2iy.eu-north-1.elasticbeanstalk.com/api/auth/resetpassword",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
