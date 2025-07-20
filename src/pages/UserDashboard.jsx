@@ -35,6 +35,43 @@ function LoadingSpinner() {
   );
 }
 
+const dummyUser = {
+  userId: 'dummy-001',
+  name: 'Guest User',
+  email: 'guest@example.com',
+  badges: ['newBie','guest','tester'],
+  questionsAsked: 2,
+  answersGiven: 0,
+  myQuestions: [
+    {
+      questionId: 'q1',
+      userId: 'dummy-001',
+      title: 'How to reset my password?',
+      description: 'I forgot my password. How can I reset it?',
+      status: 'Answered',
+      createdDate: '2023-06-01T12:00:00Z',
+      answers: [
+        {
+          answerId: 'a1',
+          description: 'You can reset your password using the reset link on the login page.',
+          createdAt: '2023-06-02T10:00:00Z',
+          userId: 'admin-01',
+          questionId: 'q1',
+        },
+      ],
+    },
+    {
+      questionId: 'q2',
+      userId: 'dummy-001',
+      title: 'What is the refund policy?',
+      description: 'Can I get a refund after purchase?',
+      status: 'Unanswered',
+      createdDate: '2023-07-15T09:30:00Z',
+      answers: [],
+    },
+  ],
+};
+
 function UserDashboard() {
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,7 +91,7 @@ function UserDashboard() {
   // Success dialog for delete/update
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Load current user from sessionStorage
+  // Load current user from sessionStorage or set dummy user if none found
   useEffect(() => {
     const storedUser = sessionStorage.getItem('currentUser');
     if (storedUser) {
@@ -68,11 +105,21 @@ function UserDashboard() {
         answersGiven: 0,
         myQuestions: [],
       });
+    } else {
+      // No logged-in user, set dummy user and dummy questions
+      setUser(dummyUser);
+      setQuestions(dummyUser.myQuestions);
+      setLoading(false);
     }
   }, []);
 
-  // Fetch questions from backend
+  // Fetch questions from backend if real user exists (not dummy)
   const fetchQuestions = () => {
+    if (!user || user.userId === 'dummy-001') {
+      // Skip fetching if dummy user
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     fetch('http://localhost:8080/api/questions', {
       method: 'GET',
@@ -107,8 +154,10 @@ function UserDashboard() {
   };
 
   useEffect(() => {
-    fetchQuestions();
-  }, []);
+    if (user) {
+      fetchQuestions();
+    }
+  }, [user]);
 
   const handleSearchInputChange = (e) => {
     setSearchTerm(e.target.value);
@@ -188,9 +237,8 @@ function UserDashboard() {
     setSelectedQuestion(question);
   };
 
-
-if (!user) return <LoadingSpinner />;
-
+  if (!user) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner />;
 
   return (
     <>
@@ -261,7 +309,7 @@ if (!user) return <LoadingSpinner />;
                       key={idx}
                       onClick={() => handleCardClick(q)}
                       className={`cursor-pointer p-4 rounded-xl border-l-4 shadow-sm hover:scale-[1.02] transition ${
-                        q.status === 'Answered'
+                        q.answers && q.answers.length > 0
                           ? 'bg-green-50 border-green-500'
                           : 'bg-yellow-50 border-yellow-500'
                       } relative`}
@@ -279,7 +327,7 @@ if (!user) return <LoadingSpinner />;
                         Status:{' '}
                         <span
                           className={`font-semibold ${
-                            q.status === 'Answered'
+                            q.answers && q.answers.length > 0
                               ? 'text-green-600'
                               : 'text-yellow-700'
                           }`}

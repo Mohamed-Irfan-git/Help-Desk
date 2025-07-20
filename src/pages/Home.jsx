@@ -293,7 +293,7 @@ function Home() {
                 </section>
 
                 {/* Footer */}
-                <footer className="text-center text-gray-500 text-sm mt-20 border-t border-gray-300 pt-6 select-none">
+                <footer className="text-center text-gray-500 text-sm mt-20 border-t border-gray-300 pt-6 select-none trun">
                     © 2025 Help Desk — Helping juniors succeed!
                 </footer>
             </div>

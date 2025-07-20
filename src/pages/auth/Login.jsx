@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Dialog } from '@headlessui/react';
+import LoginImage from '../../assets/loginImage.jpg'
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -14,10 +15,10 @@ function Login() {
 
 
   const navigate = useNavigate();
-  
+
   async function handleSubmit(e) {
     e.preventDefault();
-    
+
     document.cookie
       .split(";")
       .forEach((cookie) => {
@@ -140,9 +141,9 @@ function Login() {
         </div>
 
         {/* Image */}
-        <div className="w-full md:w-1/2 h-60 md:h-[24rem] lg:h-[28rem] rounded-xl overflow-hidden shadow-md">
+        <div className="w-full md:w-1/2 min-h-[240px] md:h-[24rem] lg:h-[28rem] rounded-xl overflow-hidden shadow-md bg-gray-200">
           <img
-            src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80"
+            src={LoginImage}
             alt="Help Desk"
             className="w-full h-full object-cover"
           />
