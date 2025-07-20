@@ -11,17 +11,27 @@ function Login() {
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [error, setError] = useState(null);
-  
+
 
   const navigate = useNavigate();
-
+  
   async function handleSubmit(e) {
     e.preventDefault();
+    
+    document.cookie
+      .split(";")
+      .forEach((cookie) => {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+      });
+
+
     setUserNotFound(false);
     setError(null);
 
     try {
-     const response = await fetch("http://localhost:8080/api/auth/signin", {
+      const response = await fetch("http://localhost:8080/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

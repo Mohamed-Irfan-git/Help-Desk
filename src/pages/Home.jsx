@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
@@ -39,12 +40,30 @@ function Home() {
         },
         {
             question: "Where can I get ID card reissued?",
-            answer: "Visit the admin office with your old ID or a complaint copy.",
+            answer: "Visit the dean office with your old ID or a complaint copy.",
         },
         {
             question: "Is medical leave accepted for attendance?",
             answer:
-                "Yes, with proper documents submitted to the department within 3 days.",
+                "Yes, with proper documents submitted to the department within provide time period.",
+        },
+    ];
+
+    const dummyAnnouncements = [
+        {
+            title: "Campus WiFi Upgrade",
+            description:
+                "The campus WiFi will be upgraded on 25th July. Expect brief outages from 2 AM to 6 AM.",
+        },
+        {
+            title: "Sports Meet",
+            description:
+                "Join us for the annual sports meet starting August 1st. Register your teams at the sports office.",
+        },
+        {
+            title: "Library Extended Hours",
+            description:
+                "The library will remain open until midnight during exam weeks to support students.",
         },
     ];
 
@@ -69,9 +88,6 @@ function Home() {
                     throw new Error(`Failed to fetch announcements. Status: ${response.status}`);
                 }
                 const data = await response.json();
-
-                // Assuming data is an array of announcements, each with at least a 'title' or 'content' field
-                // Adjust below if your API response shape is different
                 setAnnouncements(data);
             } catch (error) {
                 setErrorAnnouncements(error.message);
@@ -91,7 +107,7 @@ function Home() {
                 <section className="text-center">
                     <h1 className="text-4xl font-extrabold mb-4 tracking-wide">👋 Welcome to Help Desk!</h1>
                     <p className="text-gray-700 text-lg max-w-3xl mx-auto leading-relaxed">
-                        A friendly platform where juniors can ask questions and seniors provide guidance — all to
+                        A friendly platform where juniors can ask questions and seniors provide guidance all to
                         make your campus life easier and more connected.
                     </p>
                 </section>
@@ -156,9 +172,9 @@ function Home() {
                     <h2 className="text-3xl font-semibold mb-6 text-green-700">🌟 Real Success Stories</h2>
                     <div className="grid md:grid-cols-3 gap-6">
                         {[
-                            { name: "Anjali", story: "I got quick help with my hostel setup. This platform is a lifesaver!" },
-                            { name: "Ravi", story: "Thanks to seniors, I passed my difficult exam. Huge thanks!" },
-                            { name: "Meera", story: "Got answers to all my subject doubts within hours. Amazing support!" },
+                            { name: "Avishka", story: "I got quick help with my hostel setup. This platform is a lifesaver!" },
+                            { name: "Promoda", story: "Thanks , I passed my difficult exam. Huge thanks!" },
+                            { name: "Madusanka", story: "Got answers to all my subject doubts within hours. Amazing support!" },
                         ].map((user, index) => (
                             <div key={index} className="bg-white rounded-xl p-6 shadow hover:shadow-lg">
                                 <p className="italic text-gray-600 mb-2">"{user.story}"</p>
@@ -173,18 +189,22 @@ function Home() {
                     <h2 className="text-3xl font-semibold mb-6 text-indigo-700">🏫 Explore Clubs & Events</h2>
                     <div className="grid md:grid-cols-3 gap-6 text-left">
                         <div>
-                            <h3 className="font-bold text-lg mb-2 text-indigo-800">🎨 Art & Culture Club</h3>
+                            <h3 className="font-bold text-lg mb-2 text-indigo-800">🌍 Zero Plastic Club</h3>
                             <p className="text-gray-600 text-sm">
-                                Unleash your creativity through dance, music, and art competitions.
+                                Promote plastic free living through awareness campaigns and eco-friendly initiatives.
                             </p>
                         </div>
                         <div>
-                            <h3 className="font-bold text-lg mb-2 text-indigo-800">💻 Coding Club</h3>
-                            <p className="text-gray-600 text-sm">Weekly hackathons, DSA challenges, and peer coding support sessions.</p>
+                            <h3 className="font-bold text-lg mb-2 text-indigo-800">💻 ICTSC (ICT Students’ Club)</h3>
+                            <p className="text-gray-600 text-sm">
+                                Tech talks, workshops, and networking events to boost your ICT skills and connections.
+                            </p>
                         </div>
                         <div>
-                            <h3 className="font-bold text-lg mb-2 text-indigo-800">🌱 Eco Warriors</h3>
-                            <p className="text-gray-600 text-sm">Join clean-up drives, eco-awareness campaigns, and tree-planting events.</p>
+                            <h3 className="font-bold text-lg mb-2 text-indigo-800">🏅 Sports Club</h3>
+                            <p className="text-gray-600 text-sm">
+                                Participate in tournaments, fitness sessions, and team building sports activities.
+                            </p>
                         </div>
                     </div>
                 </section>
@@ -199,33 +219,37 @@ function Home() {
                         <p className="text-center text-gray-500 italic">Loading announcements...</p>
                     )}
 
-                    {errorAnnouncements && (
-                        <p className="text-center text-red-600 font-semibold">{errorAnnouncements}</p>
+                    {/* {errorAnnouncements && (
+                        <p className="text-center text-red-600 font-semibold mb-4">
+                            Failed to load announcements, showing latest available.
+                        </p>
+                    )} */}
+
+                    {!loadingAnnouncements && (
+                        <div className="space-y-8">
+                            {(announcements.length > 0 ? announcements : dummyAnnouncements).map(
+                                (announcement, i) => {
+                                    const title = announcement.title || `Announcement #${i + 1}`;
+                                    const description =
+                                        announcement.description || announcement.content || "";
+
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="bg-purple-50 p-6 rounded-3xl shadow-md border border-purple-200 transform transition-transform duration-300 ease-in-out hover:scale-105"
+                                            title={title}
+                                        >
+                                            <h3 className="text-2xl font-semibold text-purple-900 mb-3 truncate">{title}</h3>
+                                            <p className="text-purple-700 leading-relaxed whitespace-pre-line truncate">
+                                                {description}
+                                            </p>
+                                        </div>
+                                    );
+                                }
+                            )}
+                        </div>
                     )}
-
-                    {!loadingAnnouncements && !errorAnnouncements && announcements.length === 0 && (
-                        <p className="text-center text-gray-500 italic">No announcements available.</p>
-                    )}
-
-                    <div className="space-y-8">
-                        {announcements.map((announcement, i) => {
-                            const title = announcement.title || `Announcement #${i + 1}`;
-                            const description = announcement.description || announcement.content || "";
-
-                            return (
-                                <div
-                                    key={i}
-                                    className="bg-purple-50 p-6 rounded-3xl shadow-md border border-purple-200 transform transition-transform duration-300 ease-in-out hover:scale-105"
-                                    title={title}
-                                >
-                                    <h3 className="text-2xl font-semibold text-purple-900 mb-3">{title}</h3>
-                                    <p className="text-purple-700 leading-relaxed whitespace-pre-line">{description}</p>
-                                </div>
-                            );
-                        })}
-                    </div>
                 </section>
-
 
                 {/* Recently Asked Questions & Answers */}
                 <section>
