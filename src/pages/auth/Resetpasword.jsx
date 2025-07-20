@@ -69,7 +69,7 @@ function ResetPassword() {
 
     try {
       const response = await fetch(
-        "http://helpdesk-env.eba-pamex2iy.eu-north-1.elasticbeanstalk.com/api/auth/resetpassword",
+        "http://helpdesk2-env.eba-tjyzigrm.eu-north-1.elasticbeanstalk.com/api/auth/resetpassword",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

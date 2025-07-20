@@ -32,7 +32,7 @@ function Login() {
     setError(null);
 
     try {
-      const response = await fetch("http://helpdesk2-env.eba-tjyzigrm.eu-north-1.elasticbeanstalk.com/api/auth/signin", {
+      const response = await fetch("http://localhost:5000/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
