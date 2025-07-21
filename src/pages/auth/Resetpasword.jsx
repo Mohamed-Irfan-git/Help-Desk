@@ -20,7 +20,7 @@ function ResetPassword() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://helpdesk2-env.eba-tjyzigrm.eu-north-1.elasticbeanstalk.com/api/auth/resetcode", {
+      const response = await fetch("http://helpdesk-production-c4f9.up.railway.app//api/auth/resetcode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -69,7 +69,7 @@ function ResetPassword() {
 
     try {
       const response = await fetch(
-        "http://helpdesk2-env.eba-tjyzigrm.eu-north-1.elasticbeanstalk.com/api/auth/resetpassword",
+        "http://helpdesk-production-c4f9.up.railway.app//api/auth/resetpassword",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -32,7 +32,7 @@ function Login() {
     setError(null);
 
     try {
-      const response = await fetch("http://16.171.144.81:5000/api/auth/signin", {
+      const response = await fetch("https://helpdesk-production-c4f9.up.railway.app/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

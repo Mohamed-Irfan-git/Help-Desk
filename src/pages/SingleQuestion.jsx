@@ -47,7 +47,7 @@ function SingleQuestionPage() {
     const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
 
     useEffect(() => {
-        fetch(`http://helpdesk-env.eba-pamex2iy.eu-north-1.elasticbeanstalk.com/api/questions/${id}`, {
+        fetch(`https://helpdesk-production-c4f9.up.railway.app//api/questions/${id}`, {
             credentials: 'include',
         })
             .then(res => res.json())
